@@ -1,0 +1,21 @@
+# for MAC
+.DS_Store
+
+# logfile
+*.log
+
+# Node js 
+node_modules/
+
+# build dir
+www/
+
+# for original plugin
+!cordova-plugin-wifi/www/
+
+# Cordova
+/platforms
+/plugins
+
+# vim
+*.swp

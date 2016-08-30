@@ -1,0 +1,13 @@
+[Unit]
+Description=soracom air dialup script
+After=network.target
+
+[Service]
+User=root
+ExecStart=/etc/soracom-connect/connect_air.sh
+Restart=always
+Type=simple
+KillMode=control-group
+
+[Install]
+WantedBy=multi-user.target
