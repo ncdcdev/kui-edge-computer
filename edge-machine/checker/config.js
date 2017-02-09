@@ -1,4 +1,4 @@
-//*
+/*
  module.exports = {
   url: "http://trial.apppot.net/apppot/",
   appId: "taise_kui",
@@ -9,7 +9,7 @@
   password: "kG7ADRv77wRYhd9u",
   siteId: "SiteTestData-0001"
 };//*/
-/*
+//*
 module.exports = {
   "url":  "http://trial.apppot.net/apppot/",
   "appId":  "taise_kui2",
@@ -18,7 +18,8 @@ module.exports = {
   "companyId":  63, 
   account: "taisei_edge00001",
   password: "kG7ADRv77wRYhd9u",
-  siteId: "Site_325867d1839b4f97b41ed5ca678e2c30"
+  siteId: "Site_86eccad9841243caacd7befe14f6cce7"
+  //siteId: "Site_325867d1839b4f97b41ed5ca678e2c30"
 }//*/
 
 /*
