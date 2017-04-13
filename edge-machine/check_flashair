@@ -1,0 +1,6 @@
+#!/bin/bash
+
+SHELL=/bin/bash
+PATH=/root/.nodebrew/current/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+*/2 * * * * root /bin/bash /home/atmark/KuiEdgeMachine/check_flashair.sh

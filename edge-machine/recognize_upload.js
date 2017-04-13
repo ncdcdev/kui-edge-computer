@@ -226,8 +226,8 @@ co(function*(){
   const matches = result[0].match(/(\d{3})-(\d{3})/);
   if(!matches){
     yield updateIndex();
-    yield log('recognize_upload.js finish 1 '+process.argv[4], 'ERROR');
-    console.log('-----finish 1');
+    yield log('recognize_upload.js finish recognize error'+process.argv[4], 'ERROR');
+    console.log('-----finish recognize error');
     process.exit(1);
   }
   const kuiNumber = parseInt( matches[2] );
@@ -236,8 +236,8 @@ co(function*(){
   const kuiList = yield searchKui(kuiNumber, ajax);
   if(kuiList.length == 0){
     yield updateIndex();
-    yield log('recognize_upload.js finish 3 '+process.argv[4], 'ERROR');
-    console.log('-----finish 3');
+    yield log('recognize_upload.js finish kui not found kuiNumber: '+kuiNumber+' '+process.argv[4], 'ERROR');
+    console.log('-----finish kui not found');
     process.exit(3);
   }
 
@@ -249,18 +249,19 @@ co(function*(){
   // データ登録
   const kuiHMD = yield buildKuiHitmachineData(kuiList[0].objectId, result, file.name);
   if(kuiHMD.failed){
-    console.log('-----finish 4');
-    yield log('recognize_upload.js finish 4 '+process.argv[4]);
+    yield updateIndex();
+    console.log('-----finish ignore kui number');
+    yield log('recognize_upload.js finish ignore status kuiNumber: '+kuiNumber+' '+process.argv[4]);
     process.exit(4);
   }
   const kuiHMDResult = yield insertKuiHitMachineData(kuiHMD, ajax);
   yield updateIndex();
-  yield log('recognize_upload.js complete '+process.argv[4]);
+  yield log('recognize_upload.js complete kuiNumber: '+kuiNumber+' '+process.argv[4]);
   console.log('-----complete');
   process.exit(0);
 })
 .catch(error=>{
   console.log(error);
-  console.log('-----finish 2');
+  console.log('-----finish unknown error');
   process.exit(2);
 });

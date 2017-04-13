@@ -1,6 +1,0 @@
-#!/bin/bash
-
-SHELL=/bin/bash
-PATH=/opt/node-v6.9.4-linux-armv7l/bin:/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
-
-*/2 * * * * root /bin/bash /home/pi/KuiManagementSystem/edge-machine/checker/check_flashair.sh

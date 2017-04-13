@@ -4,18 +4,14 @@ const Indexes = require('./indexes-model')(process.argv[2]);
 function getFileList(path){
   return new Promise((resolve, reject)=>{
     let flashair;
-    try{
-      flashair = FlashAirLib('flashair.flash', 'AP');
-      flashair.command.getFileList(path, (err, files)=>{
-        if(err){
-          reject(err);
-        }else{
-          resolve(files);
-        }
-      });
-    }catch(e){
-      reject(e);
-    }
+    flashair = FlashAirLib('flashair.flash', 'AP');
+    flashair.command.getFileList(path, (err, files)=>{
+      if(err){
+        reject(err);
+      }else{
+        resolve(files);
+      }
+    });
   });
 }
 
@@ -41,18 +37,19 @@ getFileList('/VTIMG')
 .then(allFile=>{
   Indexes.findById(process.argv[3])
     .then(result=>{
-      let index = 0;
+      let index = -1;
       if(result){
         index = result.index;
       }
 
+      console.log('index-no: ' + index);
       const targetFiles = allFile.filter(file=>{
         return parseInt(file.name.substring(3)) > index;
       }).sort((a, b)=>{
         return parseInt(a.name.substring(3)) - parseInt(b.name.substring(3));
       }).slice(0, process.argv[5]||10);
       if( targetFiles.length == 0 ){
-        console.log('finish 1...');
+        console.log('finish file notfound...');
         process.exit(1);
       }
       require('fs').writeFileSync(process.argv[4], targetFiles.map(file=>file.path).join('\n')+'\n');
@@ -62,7 +59,7 @@ getFileList('/VTIMG')
 })
 .catch(e=>{
   console.log(e);
-  console.log('finish 2...');
+  console.log('finish unknown error...');
   process.exit(2);
 });
 

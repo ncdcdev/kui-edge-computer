@@ -1,0 +1,23 @@
+{
+  "name": "checker",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "co": "^4.6.0",
+    "flashair2": "https://github.com/NCDCHub/node-flashair-v2.git",
+    "gm": "^1.23.0",
+    "pngjs": "^3.0.0",
+    "readline": "^1.3.0",
+    "sequelize": "^3.30.1",
+    "sqlite3": "^3.1.8",
+    "superagent": "^3.4.1",
+    "tesseract.js": "^1.0.10"
+  }
+}

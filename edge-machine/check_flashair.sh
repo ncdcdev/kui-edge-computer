@@ -2,7 +2,7 @@
 
 LOG_FILE=/var/log/check_flashair.log
 FLASHAIR_NAME=earthguide1
-NODE=/opt/node-v6.9.4-linux-armv7l/bin/node
+NODE=/root/.nodebrew/node/v6.10.2/bin/node
 SQLITE_FILE=./index.sqlite3
 IMAGE_CACHE=cache
 LOCK_FILE=/tmp/check_flashair.lock
@@ -18,18 +18,11 @@ exit_process(){
 }
 
 connect_flashair(){
-  ifconfig wlan0 down
-  iwconfig wlan0 essid ${FLASHAIR_NAME}
-  ifconfig wlan0 up
+  nmcli connection up ${FLASHAIR_NAME}
+  nmcli device connect wlan0
+  RESULT=$?
 
-  for i in {1..40}
-  do
-    ip addr show wlan0 | grep 'inet 192' > /dev/null && break
-    echo -n .
-    sleep 1
-  done
-
-  if [ $i = 30 ];
+  if [ ${RESULT} != 0 ];
   then
     echo "[Failed] failed to connect flashair" | log
     disconnect_flashair
@@ -39,16 +32,10 @@ connect_flashair(){
 }
 
 connect_soracom(){
-  systemctl start soracom-connect
+  nmcli connection up soracom
+  RESULT=$?
 
-  for i in {1..30}
-  do
-    ip addr show ppp0 2>&1 | grep 'inet 10' > /dev/null && break
-    echo -n .
-    sleep 1
-  done
-
-  if [ $i = 30 ];
+  if [ ${RESULT} != 0 ];
   then
     echo "[Failed] failed to connect soracom-network" | log
     disconnect_soracom
@@ -58,12 +45,13 @@ connect_soracom(){
 }
 
 disconnect_flashair(){
-  ifconfig wlan0 down
+  nmcli device disconnect wlan0
+  # nmcli connection down ${FLASHAIR_NAME}
   echo disconnected from flashair | log
 }
 
 disconnect_soracom(){
-  systemctl stop soracom-connect
+  nmcli connection down soracom
   echo disconnected from soracom-network | log
 }
 
@@ -80,9 +68,11 @@ touch ${LOCK_FILE}
 disconnect_flashair
 disconnect_soracom
 
-# connect_soracom
-# ntpdate ntp.jst.mfeed.ad.jp
-# disconnect_soracom
+if [ `date +%M` -lt 3 ]; then
+  connect_soracom
+  ntpdate ntp.jst.mfeed.ad.jp
+  disconnect_soracom
+fi
 
 while :
 do
@@ -93,6 +83,8 @@ do
   ${NODE} ./list.js ${SQLITE_FILE} ${FLASHAIR_NAME} ${listfile} 10 >> ${LOG_FILE}
   result=$?
   listedfilecount=`cat ${listfile} | wc -l`
+  echo "list file"
+  cat ${listfile}
   if [ $result = 1 ];
   then
     echo done | log
@@ -105,6 +97,13 @@ do
     rm ${listfile}
     disconnect_flashair
     exit_process 1
+  fi
+  if [ $listedfilecount = 0 ];
+  then
+    echo 'file count = 0' | log
+    rm ${listfile}
+    disconnect_flashair
+    exit_process 0
   fi
 
   echo start download files | log
