@@ -6,6 +6,9 @@ NODE=/root/.nodebrew/node/v6.10.2/bin/node
 SQLITE_FILE=./index.sqlite3
 IMAGE_CACHE=cache
 LOCK_FILE=/tmp/check_flashair.lock
+MACADDR=`ifconfig usb1 | grep HWaddr | sed -e 's/.*HWaddr //g' -e 's/:/-/g'  -e 's/\s//g'`
+CFGURL="http://trial.apppot.net/kui-settings/${MACADDR}/check_flashair.sh"
+MD5URL="http://trial.apppot.net/kui-settings/${MACADDR}/check_flashair.sh.md5"
 
 log(){
   msg=`cat -`
@@ -14,6 +17,9 @@ log(){
 
 exit_process(){
   rm -f ${LOCK_FILE}
+  if [ "x${listfile}" != "x" ] && [ -e ${listfile} ];then
+    rm ${listfile}
+  fi
   exit $1;
 }
 
@@ -56,6 +62,7 @@ disconnect_soracom(){
 }
 
 cd `dirname $0`
+CDIR=`pwd`
 
 if [ -e ${LOCK_FILE} ];
 then
@@ -68,11 +75,35 @@ touch ${LOCK_FILE}
 disconnect_flashair
 disconnect_soracom
 
+connect_soracom
 if [ `date +%M` -lt 3 ]; then
-  connect_soracom
   ntpdate ntp.jst.mfeed.ad.jp
-  disconnect_soracom
 fi
+
+UHEADER="`curl --location --silent --head ${CFGURL}`"
+echo ${UHEADER} | grep '200 OK'
+RESULT=$?
+if [ ${RESULT} = 0 ];then
+  echo Update | log
+  curl --location --silent "${CFGURL}" > /tmp/check_flashair.sh
+  curl --location --silent "${MD5URL}" > /tmp/check_flashair.sh.md5
+  MD5SUM=`md5sum /tmp/check_flashair.sh`
+  cd /tmp/
+  if md5sum -c ./check_flashair.sh.md5; then
+    cd ${CDIR}
+    mv -v /tmp/check_flashair.sh ./check_flashair.sh | log
+    chmod 744 ./check_flashair.sh
+    chown atmark:atmark ./check_flashair.sh
+    rm /tmp/check_flashair.sh.md5
+    exit_process 0
+  else
+    echo 'md5sum not match' | log
+  fi
+else
+  echo Not Update | log
+fi
+
+disconnect_soracom
 
 while :
 do
@@ -88,20 +119,17 @@ do
   if [ $result = 1 ];
   then
     echo done | log
-    rm ${listfile}
     disconnect_flashair
     exit_process 0
   elif [ $result != 0 ];
   then
     echo "[Failed] failed to list files" | log
-    rm ${listfile}
     disconnect_flashair
     exit_process 1
   fi
   if [ $listedfilecount = 0 ];
   then
     echo 'file count = 0' | log
-    rm ${listfile}
     disconnect_flashair
     exit_process 0
   fi
