@@ -1,14 +1,18 @@
 #!/bin/bash
 
 LOG_FILE=/var/log/check_flashair.log
-FLASHAIR_NAME=earthguide1
+FLASHAIR_NAME=earthguide2
 NODE=/root/.nodebrew/node/v6.10.2/bin/node
 SQLITE_FILE=./index.sqlite3
 IMAGE_CACHE=cache
 LOCK_FILE=/tmp/check_flashair.lock
 MACADDR=`ifconfig usb1 | grep HWaddr | sed -e 's/.*HWaddr //g' -e 's/:/-/g'  -e 's/\s//g'`
-CFGURL="http://trial.apppot.net/kui-settings/${MACADDR}/check_flashair.sh"
-MD5URL="http://trial.apppot.net/kui-settings/${MACADDR}/check_flashair.sh.md5"
+#MACADDR='02-80-79-98-18-40'
+FLAGFILEDIR=/var/run/KuiEdgeMachine
+
+FILEURL="http://trial.apppot.net/kui-settings/${MACADDR}/"
+
+mkdir -p ${FLAGFILEDIR}
 
 log(){
   msg=`cat -`
@@ -44,9 +48,26 @@ connect_soracom(){
   if [ ${RESULT} != 0 ];
   then
     echo "[Failed] failed to connect soracom-network" | log
+    if [ -e ${FLAGFILEDIR}/sorafail1 ];then
+      if [ -e ${FLAGFILEDIR}/sorafail2 ];then
+        if [ -e ${FLAGFILEDIR}/sorafail3 ];then
+          echo "[Failed] failed to connect soracom-network 4 times rebooting" | log
+          rm ${FLAGFILEDIR}/sorafail*
+          reboot
+        else
+          touch ${FLAGFILEDIR}/sorafail3;
+        fi
+      else
+        touch ${FLAGFILEDIR}/sorafail2;
+      fi
+    else
+      touch ${FLAGFILEDIR}/sorafail1;
+    fi
     disconnect_soracom
     exit_process 1
   fi
+  rm ${FLAGFILEDIR}/sorafail*
+  sleep 5
   echo connected to soracom-network | log
 }
 
@@ -60,6 +81,45 @@ disconnect_soracom(){
   nmcli connection down soracom
   echo disconnected from soracom-network | log
 }
+
+update_file(){
+  FILE=$1
+  UHEADER="`curl --location --silent --head ${FILEURL}${FILE}`"
+  echo ${UHEADER} | grep '200 OK'
+  RESULT=$?
+  if [ ${RESULT} = 0 ];then
+    echo Update | log
+    curl --location --silent "${FILEURL}${FILE}" > /tmp/${FILE}
+    curl --location --silent "${FILEURL}${FILE}.md5" > /tmp/${FILE}.md5
+    MD5SUM=`md5sum /tmp/${FILE}`
+    cd /tmp/
+    if md5sum -c ./${FILE}.md5; then
+      cd ${CDIR}
+      mv /tmp/${FILE} ./${FILE}
+      mv /tmp/${FILE}.md5 ./${FILE}.md5
+      chmod 744 ./${FILE}
+      chown atmark:atmark ./${FILE}
+      rm /tmp/${FILE}.md5
+      # reboot
+    else
+      echo 'md5sum not match' | log
+    fi
+  else
+    echo Not Update | log
+  fi
+}
+
+syncdate(){
+  sleep 10
+  ntpdate ntp.dnsbalance.ring.gr.jp
+  ntpdate ntp.nict.jp
+  ntpdate ntp.jst.mfeed.ad.jp
+  ntpdate 130.34.48.32 # ntp2.tohoku.ac.jp
+  ntpdate 130.87.32.71 # gps.kek.jp
+  ntpdate 130.69.251.23 # ntp.nc.u-tokyo.ac.jp
+  ntpdate 133.15.64.8 # ntp.tut.ac.jp
+}
+
 
 cd `dirname $0`
 CDIR=`pwd`
@@ -76,32 +136,17 @@ disconnect_flashair
 disconnect_soracom
 
 connect_soracom
-if [ `date +%M` -lt 3 ]; then
-  ntpdate ntp.jst.mfeed.ad.jp
+
+if [ `/bin/date +%Y` -lt 2000 ]; then
+  ./els31-firewall-disable
+  syncdate
 fi
 
-UHEADER="`curl --location --silent --head ${CFGURL}`"
-echo ${UHEADER} | grep '200 OK'
-RESULT=$?
-if [ ${RESULT} = 0 ];then
-  echo Update | log
-  curl --location --silent "${CFGURL}" > /tmp/check_flashair.sh
-  curl --location --silent "${MD5URL}" > /tmp/check_flashair.sh.md5
-  MD5SUM=`md5sum /tmp/check_flashair.sh`
-  cd /tmp/
-  if md5sum -c ./check_flashair.sh.md5; then
-    cd ${CDIR}
-    mv -v /tmp/check_flashair.sh ./check_flashair.sh | log
-    chmod 744 ./check_flashair.sh
-    chown atmark:atmark ./check_flashair.sh
-    rm /tmp/check_flashair.sh.md5
-    exit_process 0
-  else
-    echo 'md5sum not match' | log
-  fi
-else
-  echo Not Update | log
+if [ `/bin/date +%M` -lt 4 ]; then
+  syncdate
 fi
+
+update_file check_flashair.sh
 
 disconnect_soracom
 
@@ -111,7 +156,8 @@ do
   listfile=$(mktemp "/tmp/${0##*/}.tmp.XXXXXX")
   connect_flashair
   sleep 5s
-  ${NODE} ./list.js ${SQLITE_FILE} ${FLASHAIR_NAME} ${listfile} 10 >> ${LOG_FILE}
+  cat /proc/net/wireless | log
+  timeout 60 ${NODE} ./list.js ${SQLITE_FILE} ${FLASHAIR_NAME} ${listfile} 10 >> ${LOG_FILE}
   result=$?
   listedfilecount=`cat ${listfile} | wc -l`
   echo "list file"
@@ -135,7 +181,7 @@ do
   fi
 
   echo start download files | log
-  wget --no-host-directories --directory-prefix=${IMAGE_CACHE} --input-file=${listfile} --append-output=${LOG_FILE}
+  wget --timeout=10 --no-host-directories --directory-prefix=${IMAGE_CACHE} --input-file=${listfile} --append-output=${LOG_FILE}
   disconnect_flashair
   rm ${listfile}
 
@@ -170,7 +216,9 @@ do
       echo "[Ignore] ${file} recognized but ignore status" | log
     fi
   done
+  echo "done image loop" | log
   disconnect_soracom
+exit_process 1
 done
 
 exit_process 0
