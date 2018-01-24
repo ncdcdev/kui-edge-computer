@@ -3,4 +3,4 @@
 SHELL=/bin/bash
 PATH=/root/.nodebrew/current/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
-*/2 * * * * root /bin/bash /home/atmark/kui-edge-computer/main.sh >> /var/log/check_flashair_std.log 2>&1
+*/2 * * * * root /bin/bash /home/atmark/KuiEdgeMachine/check_flashair.sh

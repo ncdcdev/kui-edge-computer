@@ -1,16 +1,15 @@
 #!/bin/bash
 
 LOG_FILE=/var/log/check_flashair.log
-FLASHAIR_NAME=earthguide2
+FLASHAIR_NAME=earthguide1
 NODE=/root/.nodebrew/node/v6.10.2/bin/node
 SQLITE_FILE=./index.sqlite3
 IMAGE_CACHE=cache
 LOCK_FILE=/tmp/check_flashair.lock
 MACADDR=`ifconfig usb1 | grep HWaddr | sed -e 's/.*HWaddr //g' -e 's/:/-/g'  -e 's/\s//g'`
 #MACADDR='02-80-79-98-18-40'
-FLAGFILEDIR=/var/run/kui-edge-computer
 
-mkdir -p ${FLAGFILEDIR}
+FILEURL="http://trial.apppot.net/kui-settings/${MACADDR}/"
 
 log(){
   msg=`cat -`
@@ -46,26 +45,9 @@ connect_soracom(){
   if [ ${RESULT} != 0 ];
   then
     echo "[Failed] failed to connect soracom-network" | log
-    if [ -e ${FLAGFILEDIR}/sorafail1 ];then
-      if [ -e ${FLAGFILEDIR}/sorafail2 ];then
-        if [ -e ${FLAGFILEDIR}/sorafail3 ];then
-          echo "[Failed] failed to connect soracom-network 4 times rebooting" | log
-          rm ${FLAGFILEDIR}/sorafail*
-          reboot
-        else
-          touch ${FLAGFILEDIR}/sorafail3;
-        fi
-      else
-        touch ${FLAGFILEDIR}/sorafail2;
-      fi
-    else
-      touch ${FLAGFILEDIR}/sorafail1;
-    fi
     disconnect_soracom
     exit_process 1
   fi
-  rm ${FLAGFILEDIR}/sorafail*
-  sleep 5
   echo connected to soracom-network | log
 }
 
@@ -84,14 +66,6 @@ update_file(){
   git pull
 }
 
-syncdate(){
-  sleep 10
-  ntpdate ntp.dnsbalance.ring.gr.jp
-  ntpdate ntp.nict.jp
-  ntpdate ntp.jst.mfeed.ad.jp
-}
-
-
 cd `dirname $0`
 CDIR=`pwd`
 
@@ -107,14 +81,8 @@ disconnect_flashair
 disconnect_soracom
 
 connect_soracom
-
-if [ `/bin/date +%Y` -lt 2000 ]; then
-  ./els31-firewall-disable
-  syncdate
-fi
-
-if [ `/bin/date +%M` -lt 4 ]; then
-  syncdate
+if [ `date +%M` -lt 3 ]; then
+  ntpdate ntp.jst.mfeed.ad.jp
 fi
 
 update_file
@@ -187,10 +155,7 @@ do
       echo "[Ignore] ${file} recognized but ignore status" | log
     fi
   done
-  echo "done image loop" | log
   disconnect_soracom
-exit_process 1
 done
 
 exit_process 0
-

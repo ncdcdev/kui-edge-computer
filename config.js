@@ -7,9 +7,9 @@ module.exports = {
   "companyId":  63, 
   account: "taisei_edge00001",
   password: "kG7ADRv77wRYhd9u",
-  //siteId: "Site_86eccad9841243caacd7befe14f6cce7"
-  //siteId: "Site_325867d1839b4f97b41ed5ca678e2c30"
-  siteId: "Site_59d1be1103ae483bb4fe58a67f638111"
+  //siteId: "Site_86eccad9841243caacd7befe14f6cce7" // apppot_taise_kui_1_2_0 nishih-sinagawa
+  //siteId: "Site_325867d1839b4f97b41ed5ca678e2c30" // apppot_taise_kui_1_2_0 mibu
+  siteId: "Site_59d1be1103ae483bb4fe58a67f638111" // apppot_taise_kui2_1_3_0 toruko
 }//*/
 
 /*
@@ -24,7 +24,7 @@ module.exports = {
   siteId: "Site_325867d1839b4f97b41ed5ca678e2c30"
 }//*/
 
-//*
+/*
 module.exports = {
   url: "http://trial.apppot.net/apppot/",
   appId: "taisei_kui_develop",
@@ -34,4 +34,17 @@ module.exports = {
   account: "taisei_edge00001",
   password: "kG7ADRv77wRYhd9u",
   siteId: "SiteTestData-0001"
+}//*/
+
+//*
+module.exports = {
+  url: "http://trial.apppot.net/apppot/",
+  appId: "taisei_kui_staging",
+  appKey: "82ec0045f000469c84b82e062965c73d",
+  appVersion: "1.0.0",
+  companyId: 63, 
+  account: "taisei_edge00001",
+  password: "kG7ADRv77wRYhd9u",
+  // siteId: "Site_33dd87942bff4b59ba09f6eb575f8880" // apppot_taisei_kui_staging_1_0_0 yomiuri
+  siteId: "Site_53bfbf26606a44e6ac3301e457095f18" // apppot_taisei_kui_staging_1_0_0 morinaga
 }//*/
