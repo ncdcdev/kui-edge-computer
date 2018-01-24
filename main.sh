@@ -8,9 +8,7 @@ IMAGE_CACHE=cache
 LOCK_FILE=/tmp/check_flashair.lock
 MACADDR=`ifconfig usb1 | grep HWaddr | sed -e 's/.*HWaddr //g' -e 's/:/-/g'  -e 's/\s//g'`
 #MACADDR='02-80-79-98-18-40'
-FLAGFILEDIR=/var/run/KuiEdgeMachine
-
-FILEURL="http://trial.apppot.net/kui-settings/${MACADDR}/"
+FLAGFILEDIR=/var/run/kui-edge-computer
 
 mkdir -p ${FLAGFILEDIR}
 
@@ -83,30 +81,7 @@ disconnect_soracom(){
 }
 
 update_file(){
-  FILE=$1
-  UHEADER="`curl --location --silent --head ${FILEURL}${FILE}`"
-  echo ${UHEADER} | grep '200 OK'
-  RESULT=$?
-  if [ ${RESULT} = 0 ];then
-    echo Update | log
-    curl --location --silent "${FILEURL}${FILE}" > /tmp/${FILE}
-    curl --location --silent "${FILEURL}${FILE}.md5" > /tmp/${FILE}.md5
-    MD5SUM=`md5sum /tmp/${FILE}`
-    cd /tmp/
-    if md5sum -c ./${FILE}.md5; then
-      cd ${CDIR}
-      mv /tmp/${FILE} ./${FILE}
-      mv /tmp/${FILE}.md5 ./${FILE}.md5
-      chmod 744 ./${FILE}
-      chown atmark:atmark ./${FILE}
-      rm /tmp/${FILE}.md5
-      # reboot
-    else
-      echo 'md5sum not match' | log
-    fi
-  else
-    echo Not Update | log
-  fi
+  git pull
 }
 
 syncdate(){
@@ -114,10 +89,6 @@ syncdate(){
   ntpdate ntp.dnsbalance.ring.gr.jp
   ntpdate ntp.nict.jp
   ntpdate ntp.jst.mfeed.ad.jp
-  ntpdate 130.34.48.32 # ntp2.tohoku.ac.jp
-  ntpdate 130.87.32.71 # gps.kek.jp
-  ntpdate 130.69.251.23 # ntp.nc.u-tokyo.ac.jp
-  ntpdate 133.15.64.8 # ntp.tut.ac.jp
 }
 
 
@@ -146,7 +117,7 @@ if [ `/bin/date +%M` -lt 4 ]; then
   syncdate
 fi
 
-update_file check_flashair.sh
+update_file
 
 disconnect_soracom
 
