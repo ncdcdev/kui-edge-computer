@@ -5,6 +5,10 @@ const PNG = require('pngjs').PNG;
 const config = require('./config');
 const AppPot = require('./apppot-sdk-lite');
 
+const dbfile = process.argv[2];
+const imageFile = process.argv[3];
+const ssid = config.wifiSsid;
+
 const geometries = {
   kuiNumber: {
     width: 100,
@@ -113,10 +117,10 @@ function all(path){
 }
 
 function updateIndex(){
-  const matches = process.argv[4].match(/.*IMG(\d+).*/);
-  const Indexes = require('./indexes-model')(process.argv[2]);
+  const matches = imageFile.match(/.*IMG(\d+).*/);
+  const Indexes = require('./indexes-model')(dbfile);
   return Indexes.upsert({
-    ssid: process.argv[3],
+    ssid: ssid,
     index: parseInt( matches[1] )
   })
 }
@@ -194,12 +198,12 @@ function insertKuiHitMachineData(data, ajax){
 
 co(function*(){
   console.log('-----start');
-  const filePath = __dirname + '/' + process.argv[4];
+  const filePath = __dirname + '/' + imageFile;
 
 
   // AppPot API呼び出し準備
   const authInfo = new AppPot.AuthInfo();
-  const conf = new AppPot.Config(config, process.argv[3]);
+  const conf = new AppPot.Config(config, ssid);
   const ajax = new AppPot.Ajax(authInfo, conf);
   const authenticator = new AppPot.LocalAuthenticator(authInfo, conf, ajax);
   const File = AppPot.getFileClass(authInfo, conf, ajax);
@@ -217,7 +221,7 @@ co(function*(){
   // ログイン
   yield authenticator.login(config.account, config.password);
 
-  yield log('recognize_upload.js logined '+process.argv[4]);
+  yield log('recognize_upload.js logined ' + imageFile);
 
   const result = yield all(filePath);
   console.log('--------');
@@ -226,7 +230,7 @@ co(function*(){
   const matches = result[0].match(/(\d{3})-(\d{3})/);
   if(!matches){
     yield updateIndex();
-    yield log('recognize_upload.js finish recognize error'+process.argv[4], 'ERROR');
+    yield log('recognize_upload.js finish recognize error' + imageFile, 'ERROR');
     console.log('-----finish recognize error');
     process.exit(1);
   }
@@ -236,7 +240,7 @@ co(function*(){
   const kuiList = yield searchKui(kuiNumber, ajax);
   if(kuiList.length == 0){
     yield updateIndex();
-    yield log('recognize_upload.js finish kui not found kuiNumber: '+kuiNumber+' '+process.argv[4], 'ERROR');
+    yield log('recognize_upload.js finish kui not found kuiNumber: ' + kuiNumber + ' ' + imageFile, 'ERROR');
     console.log('-----finish kui not found');
     process.exit(3);
   }
@@ -251,12 +255,12 @@ co(function*(){
   if(kuiHMD.failed){
     yield updateIndex();
     console.log('-----finish ignore kui number');
-    yield log('recognize_upload.js finish ignore status kuiNumber: '+kuiNumber+' '+process.argv[4]);
+    yield log('recognize_upload.js finish ignore status kuiNumber: ' + kuiNumber + ' ' + imageFile);
     process.exit(4);
   }
   const kuiHMDResult = yield insertKuiHitMachineData(kuiHMD, ajax);
   yield updateIndex();
-  yield log('recognize_upload.js complete kuiNumber: '+kuiNumber+' '+process.argv[4]);
+  yield log('recognize_upload.js complete kuiNumber: ' + kuiNumber + ' ' + imageFile);
   console.log('-----complete');
   process.exit(0);
 })

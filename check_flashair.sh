@@ -1,7 +1,7 @@
 #!/bin/bash
 
 LOG_FILE=/var/log/check_flashair.log
-FLASHAIR_NAME=earthguide2
+NETWORK_NAME=earthguide
 NODE=/root/.nodebrew/node/v6.10.2/bin/node
 SQLITE_FILE=./index.sqlite3
 IMAGE_CACHE=cache
@@ -28,7 +28,7 @@ exit_process(){
 }
 
 connect_flashair(){
-  nmcli connection up ${FLASHAIR_NAME}
+  nmcli connection up ${NETWORK_NAME}
   nmcli device connect wlan0
   RESULT=$?
 
@@ -73,7 +73,7 @@ connect_soracom(){
 
 disconnect_flashair(){
   nmcli device disconnect wlan0
-  # nmcli connection down ${FLASHAIR_NAME}
+  # nmcli connection down ${NETWORK_NAME}
   echo disconnected from flashair | log
 }
 
@@ -83,30 +83,8 @@ disconnect_soracom(){
 }
 
 update_file(){
-  FILE=$1
-  UHEADER="`curl --location --silent --head ${FILEURL}${FILE}`"
-  echo ${UHEADER} | grep '200 OK'
-  RESULT=$?
-  if [ ${RESULT} = 0 ];then
-    echo Update | log
-    curl --location --silent "${FILEURL}${FILE}" > /tmp/${FILE}
-    curl --location --silent "${FILEURL}${FILE}.md5" > /tmp/${FILE}.md5
-    MD5SUM=`md5sum /tmp/${FILE}`
-    cd /tmp/
-    if md5sum -c ./${FILE}.md5; then
-      cd ${CDIR}
-      mv /tmp/${FILE} ./${FILE}
-      mv /tmp/${FILE}.md5 ./${FILE}.md5
-      chmod 744 ./${FILE}
-      chown atmark:atmark ./${FILE}
-      rm /tmp/${FILE}.md5
-      # reboot
-    else
-      echo 'md5sum not match' | log
-    fi
-  else
-    echo Not Update | log
-  fi
+  git reset --hard HEAD
+  git pull
 }
 
 syncdate(){
@@ -114,12 +92,7 @@ syncdate(){
   ntpdate ntp.dnsbalance.ring.gr.jp
   ntpdate ntp.nict.jp
   ntpdate ntp.jst.mfeed.ad.jp
-  ntpdate 130.34.48.32 # ntp2.tohoku.ac.jp
-  ntpdate 130.87.32.71 # gps.kek.jp
-  ntpdate 130.69.251.23 # ntp.nc.u-tokyo.ac.jp
-  ntpdate 133.15.64.8 # ntp.tut.ac.jp
 }
-
 
 cd `dirname $0`
 CDIR=`pwd`
@@ -157,7 +130,7 @@ do
   connect_flashair
   sleep 5s
   cat /proc/net/wireless | log
-  timeout 60 ${NODE} ./list.js ${SQLITE_FILE} ${FLASHAIR_NAME} ${listfile} 10 >> ${LOG_FILE}
+  timeout 60 ${NODE} ./list.js ${SQLITE_FILE} ${listfile} 10 >> ${LOG_FILE}
   result=$?
   listedfilecount=`cat ${listfile} | wc -l`
   echo "list file"
@@ -195,7 +168,7 @@ do
   connect_soracom
   for file in ${IMAGE_CACHE}/*;
   do
-    ${NODE} ./recognize_upload.js ${SQLITE_FILE} ${FLASHAIR_NAME} ${file} >> ${LOG_FILE}
+    ${NODE} ./recognize_upload.js ${SQLITE_FILE} ${file} >> ${LOG_FILE}
     result=$?
     if [ $result = 0 ];
     then
