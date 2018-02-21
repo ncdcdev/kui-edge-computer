@@ -84,6 +84,7 @@ disconnect_soracom(){
 
 update_file(){
   git reset --hard HEAD
+  git checkout master
   git pull
 }
 
