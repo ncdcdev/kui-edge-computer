@@ -44,6 +44,7 @@ function updateMachineStatus(ajax, machine) {
         objectName: 'Machine',
         data: [{
           objectId: machine.objectId,
+          serverUpdateTime: machine.serverUpdateTime,
           status: 'normal',
           overrideIndex: 0,
           updateTime: Math.floor(Date.now() / 1000)
