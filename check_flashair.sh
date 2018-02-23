@@ -119,10 +119,10 @@ if [ `/bin/date +%M` -lt 4 ]; then
 fi
 
 update_file
-if [ ! -e ${INDEX_FILE} ];
+if [ ! -e ${INDEX_FILE} ] then;
   echo 0 > ${INDEX_FILE}
 fi
-if [ ! -e ${SITE_ID_FILE} ];
+if [ ! -e ${SITE_ID_FILE} ] then;
   echo 0 > ${SITE_ID_FILE}
 fi
 ${NODE} ./update_machine_status.js ${INDEX_FILE} ${MACADDR} ${SITE_ID_FILE} >> ${LOG_FILE}
