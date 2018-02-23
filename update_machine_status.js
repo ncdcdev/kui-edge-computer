@@ -11,6 +11,7 @@ const siteIdFile = process.argv[4];
  * exit 0 => normal
  * exit 1 => require reboot
  * exit 2 => require waiting
+ * exit 3 => require halt
  * exit 5 => unknown error
 **/
 
@@ -90,6 +91,11 @@ co(function*(){
   }else if(machine.status == 'waiting'){
     yield log('waiting...');
     process.exit(2);
+  }else if(machine.status == 'halt'){
+    yield log('halting...');
+    machine.status = 'halted';
+    yield updateMachineStatus(ajax, machine);
+    process.exit(3);
   }else if(machine.status != 'normal'){
     machine.status = 'normal';
     doUpdate = true;

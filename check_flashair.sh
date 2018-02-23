@@ -134,6 +134,9 @@ elif [ $result = 2 ];
 then
   disconnect_soracom
   exit_process 0
+elif [ $result = 3 ];
+then
+  poweroff
 fi
 
 disconnect_soracom
