@@ -3,14 +3,12 @@
 LOG_FILE=/var/log/check_flashair.log
 NETWORK_NAME=earthguide
 NODE=/root/.nodebrew/node/v6.10.2/bin/node
-SQLITE_FILE=./index.sqlite3
+INDEX_FILE=index.txt
+SITE_ID_FILE=siteid.txt
 IMAGE_CACHE=cache
 LOCK_FILE=/tmp/check_flashair.lock
-MACADDR=`ifconfig usb1 | grep HWaddr | sed -e 's/.*HWaddr //g' -e 's/:/-/g'  -e 's/\s//g'`
-#MACADDR='02-80-79-98-18-40'
+MACADDR=`ip addr show eth0 | grep link/ether | sed -E "s@.*link/ether\s(\S+)(\s.*|$)@\1@g"`
 FLAGFILEDIR=/var/run/KuiEdgeMachine
-
-FILEURL="http://trial.apppot.net/kui-settings/${MACADDR}/"
 
 mkdir -p ${FLAGFILEDIR}
 
@@ -120,7 +118,14 @@ if [ `/bin/date +%M` -lt 4 ]; then
   syncdate
 fi
 
-update_file check_flashair.sh
+update_file
+if [ ! -e ${INDEX_FILE} ];
+  echo 0 > ${INDEX_FILE}
+fi
+if [ ! -e ${SITE_ID_FILE} ];
+  echo 0 > ${SITE_ID_FILE}
+fi
+${NODE} ./update_machine_status.js ${INDEX_FILE} ${MACADDR} ${SITE_ID_FILE} >> ${LOG_FILE}
 
 disconnect_soracom
 
@@ -131,7 +136,7 @@ do
   connect_flashair
   sleep 5s
   cat /proc/net/wireless | log
-  timeout 60 ${NODE} ./list.js ${SQLITE_FILE} ${listfile} 10 >> ${LOG_FILE}
+  timeout 60 ${NODE} ./list.js ${INDEX_FILE} ${listfile} 10 >> ${LOG_FILE}
   result=$?
   listedfilecount=`cat ${listfile} | wc -l`
   echo "list file"
@@ -169,7 +174,7 @@ do
   connect_soracom
   for file in ${IMAGE_CACHE}/*;
   do
-    ${NODE} ./recognize_upload.js ${SQLITE_FILE} ${file} >> ${LOG_FILE}
+    ${NODE} ./recognize_upload.js ${INDEX_FILE} ${file} ${MACADDR} ${SITE_ID_FILE} >> ${LOG_FILE}
     result=$?
     if [ $result = 0 ];
     then

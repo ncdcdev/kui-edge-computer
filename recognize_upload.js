@@ -2,12 +2,15 @@ const Tesseract = require('tesseract.js');
 const co = require('co');
 const gm = require('gm');
 const PNG = require('pngjs').PNG;
+const fs = require('fs');
 const config = require('./config');
 const AppPot = require('./apppot-sdk-lite');
 
-const dbfile = process.argv[2];
+const indexFile = process.argv[2];
 const imageFile = process.argv[3];
-const ssid = config.wifiSsid;
+const macAddr = process.argv[4];
+const siteIdFile = process.argv[5];
+const siteId = fs.readFileSync(siteIdFile);
 
 const geometries = {
   kuiNumber: {
@@ -118,14 +121,20 @@ function all(path){
 
 function updateIndex(){
   const matches = imageFile.match(/.*IMG(\d+).*/);
-  const Indexes = require('./indexes-model')(dbfile);
-  return Indexes.upsert({
-    ssid: ssid,
-    index: parseInt( matches[1] )
-  })
+  const index = parseInt( matches[1] );
+
+  return new Promise((resolve, reject) => {
+    fs.writeFile(indexFile, index, (err) => {
+      if(err) {
+        reject(err);
+      }else{
+        resolve(index);
+      }
+    });
+  });
 }
 
-function searchKui(kuiNumber, ajax){
+function searchKui(ajax, kuiNumber){
   const searchKuiQuery = {
     'from': {
       'phyName' :'Kui',
@@ -134,7 +143,7 @@ function searchKui(kuiNumber, ajax){
     'where': {
       'expression': {
         'source': '#Kui.kuiNumber = ? and #Kui.siteId = ?',
-        'params': [kuiNumber, config.siteId]
+        'params': [kuiNumber, siteId]
       }
     }
   };
@@ -175,7 +184,42 @@ function buildKuiHitmachineData(kuiId, recognizedData, fileName){
   };
 }
 
-function insertKuiHitMachineData(data, ajax){
+function sendIndex(ajax, index){
+  const query = {
+    'from': {
+      'phyName': 'Machine',
+      'alias': 'Machine'
+    },
+    'where': {
+      'expression': {
+        'source': '#Machine.macAddress = ?',
+        'params': [macAddr]
+      }
+    }
+  };
+  return new Promise((resolve, reject) => {
+    ajax.post('data/Machine')
+      .send(query)
+      .end(AppPot.Ajax.end((obj) => {
+        const machine = obj.Machine[0];
+        machine.index = index;
+        ajax.post('data/batch/updateData')
+          .send({
+            objectName: 'Machine',
+            data: [
+              machine
+            ]
+          })
+          .end(AppPot.Ajax.end((obj) => {
+            resolve();
+          }));
+      }, (err) => {
+        reject(err);
+      }));
+  });
+}
+
+function insertKuiHitMachineData(ajax, data){
   return new Promise((resolve, reject)=>{
     ajax.post('data/batch/addData')
       .send({
@@ -203,7 +247,7 @@ co(function*(){
 
   // AppPot API呼び出し準備
   const authInfo = new AppPot.AuthInfo();
-  const conf = new AppPot.Config(config, ssid);
+  const conf = new AppPot.Config(config, macAddr);
   const ajax = new AppPot.Ajax(authInfo, conf);
   const authenticator = new AppPot.LocalAuthenticator(authInfo, conf, ajax);
   const File = AppPot.getFileClass(authInfo, conf, ajax);
@@ -229,7 +273,8 @@ co(function*(){
   console.log('--------');
   const matches = result[0].match(/(\d{3})-(\d{3})/);
   if(!matches){
-    yield updateIndex();
+    const index = yield updateIndex();
+    yield sendIndex(ajax, index);
     yield log('recognize_upload.js finish recognize error' + imageFile, 'ERROR');
     console.log('-----finish recognize error');
     process.exit(1);
@@ -237,29 +282,32 @@ co(function*(){
   const kuiNumber = parseInt( matches[2] );
 
   // 杭データ確認
-  const kuiList = yield searchKui(kuiNumber, ajax);
+  const kuiList = yield searchKui(ajax, kuiNumber);
   if(kuiList.length == 0){
-    yield updateIndex();
+    const index = yield updateIndex();
+    yield sendIndex(ajax, index);
     yield log('recognize_upload.js finish kui not found kuiNumber: ' + kuiNumber + ' ' + imageFile, 'ERROR');
     console.log('-----finish kui not found');
     process.exit(3);
   }
 
   // 画像アップロード
-  const fileContent = require('fs').readFileSync(filePath);
+  const fileContent = fs.readFileSync(filePath);
   const fileName = require('path').basename(filePath);
   const file = yield File.create(fileName, fileContent);
 
   // データ登録
   const kuiHMD = yield buildKuiHitmachineData(kuiList[0].objectId, result, file.name);
   if(kuiHMD.failed){
-    yield updateIndex();
+    const index = yield updateIndex();
+    yield sendIndex(ajax, index);
     console.log('-----finish ignore kui number');
     yield log('recognize_upload.js finish ignore status kuiNumber: ' + kuiNumber + ' ' + imageFile);
     process.exit(4);
   }
-  const kuiHMDResult = yield insertKuiHitMachineData(kuiHMD, ajax);
-  yield updateIndex();
+  const kuiHMDResult = yield insertKuiHitMachineData(ajax, kuiHMD);
+  const index = yield updateIndex();
+  yield sendIndex(ajax, index);
   yield log('recognize_upload.js complete kuiNumber: ' + kuiNumber + ' ' + imageFile);
   console.log('-----complete');
   process.exit(0);

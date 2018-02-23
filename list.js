@@ -1,11 +1,10 @@
-const dbfile = process.argv[2];
+const indexFile = process.argv[2];
 const listFile = process.argv[3];
 const fileNum = process.argv[4];
 
 const FlashAirLib = require('flashair2');
-const Indexes = require('./indexes-model')(dbfile);
+const fs = require('fs');
 const config = require('./config');
-const ssid = config.wifiSsid;
 
 function getFileList(path){
   return new Promise((resolve, reject)=>{
@@ -41,11 +40,10 @@ getFileList('/VTIMG')
   return allFile;
 })
 .then(allFile=>{
-  Indexes.findById(ssid)
-    .then(result=>{
+  fs.readFile(indexFile, (err, _index) => {
       let index = -1;
-      if(result){
-        index = result.index;
+      if(!err){
+        index = _index;
       }
 
       console.log('index-no: ' + index);
@@ -58,7 +56,7 @@ getFileList('/VTIMG')
         console.log('finish file notfound...');
         process.exit(1);
       }
-      require('fs').writeFileSync(listFile, targetFiles.map(file=>file.path).join('\n')+'\n');
+      fs.writeFileSync(listFile, targetFiles.map(file=>file.path).join('\n')+'\n');
       console.log('complete...');
       process.exit(0);
     });
