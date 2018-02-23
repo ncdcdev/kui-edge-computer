@@ -92,7 +92,7 @@ co(function*(){
     yield log('overrided siteId to: ' + machine.siteId);
   }
 
-  if(machine.overrideIndex) {
+  if(machine.overrideIndex == '1') {
     fs.writeFileSync(indexFile, machine.index);
     yield log('overrided index to: ' + machine.index);
   }
