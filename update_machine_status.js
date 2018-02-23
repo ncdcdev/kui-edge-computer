@@ -76,7 +76,9 @@ co(function*(){
     yield log('overrided index to: ' + machine.index);
   }
 
-  machie.status = 'normal';
+  machine.status = 'normal';
+  machine.overrideIndex = false;
+  machine.updateTime = Math.floor(Date.now() / 1000);
   ajax.post('data/batch/updateData')
     .send({
       objectName: 'Machine',
@@ -84,7 +86,7 @@ co(function*(){
         machine
       ]
     })
-    .end(()=>{}, ()=>{});
+    .end(AppPot.Ajax.end(() => { }, (err) => { }));
 })
 .catch(error=>{
   console.log(error);

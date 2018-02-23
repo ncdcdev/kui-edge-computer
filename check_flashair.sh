@@ -7,7 +7,7 @@ INDEX_FILE=index.txt
 SITE_ID_FILE=siteid.txt
 IMAGE_CACHE=cache
 LOCK_FILE=/tmp/check_flashair.lock
-MACADDR=`ip addr show eth0 | grep link/ether | sed -E "s@.*link/ether\s(\S+)(\s.*|$)@\1@g"`
+MACADDR=`ip addr show wlan0 | grep link/ether | sed -E "s@.*link/ether\s(\S+)(\s.*|$)@\1@g"`
 FLAGFILEDIR=/var/run/KuiEdgeMachine
 
 mkdir -p ${FLAGFILEDIR}
@@ -125,7 +125,7 @@ fi
 if [ ! -e ${SITE_ID_FILE} ]; then
   echo 0 > ${SITE_ID_FILE}
 fi
-${NODE} ./update_machine_status.js ${INDEX_FILE} ${MACADDR} ${SITE_ID_FILE} >> ${LOG_FILE}
+${NODE} ./update_machine_status.js ${INDEX_FILE} "${MACADDR}" ${SITE_ID_FILE} >> ${LOG_FILE}
 
 disconnect_soracom
 
@@ -174,7 +174,7 @@ do
   connect_soracom
   for file in ${IMAGE_CACHE}/*;
   do
-    ${NODE} ./recognize_upload.js ${INDEX_FILE} ${file} ${MACADDR} ${SITE_ID_FILE} >> ${LOG_FILE}
+    ${NODE} ./recognize_upload.js ${INDEX_FILE} ${file} "${MACADDR}" ${SITE_ID_FILE} >> ${LOG_FILE}
     result=$?
     if [ $result = 0 ];
     then
