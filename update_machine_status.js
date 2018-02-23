@@ -37,6 +37,22 @@ function getMachine(ajax){
   });
 }
 
+function updateMachineStatus(ajax) {
+  machine.status = 'normal';
+  machine.overrideIndex = false;
+  machine.updateTime = Math.floor(Date.now() / 1000);
+  return new Promise((resolve, rejext) => {
+    ajax.post('data/batch/updateData')
+      .send({
+        objectName: 'Machine',
+        data: [
+          machine
+        ]
+      })
+      .end(AppPot.Ajax.end(resolve, reject));
+  });
+}
+
 co(function*(){
   // AppPot API呼び出し準備
   const authInfo = new AppPot.AuthInfo();
@@ -76,17 +92,7 @@ co(function*(){
     yield log('overrided index to: ' + machine.index);
   }
 
-  machine.status = 'normal';
-  machine.overrideIndex = false;
-  machine.updateTime = Math.floor(Date.now() / 1000);
-  ajax.post('data/batch/updateData')
-    .send({
-      objectName: 'Machine',
-      data: [
-        machine
-      ]
-    })
-    .end(AppPot.Ajax.end(() => { }, (err) => { }));
+  yield updateMachineStatus(ajax);
 })
 .catch(error=>{
   console.log(error);
