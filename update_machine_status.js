@@ -37,7 +37,7 @@ function getMachine(ajax){
   });
 }
 
-function updateMachineStatus(ajax) {
+function updateMachineStatus(ajax, machine) {
   machine.status = 'normal';
   machine.overrideIndex = false;
   machine.updateTime = Math.floor(Date.now() / 1000);
@@ -92,7 +92,7 @@ co(function*(){
     yield log('overrided index to: ' + machine.index);
   }
 
-  yield updateMachineStatus(ajax);
+  yield updateMachineStatus(ajax, machine);
 })
 .catch(error=>{
   console.log(error);
