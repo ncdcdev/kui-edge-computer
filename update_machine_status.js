@@ -55,7 +55,7 @@ co(function*(){
   };
 
   yield authenticator.login(config.account, config.password);
-  yield log('update_machine_status.js logined ' + imageFile);
+  yield log('update_machine_status.js logined');
 
   const machine = yield getMachine(ajax);
 
