@@ -46,8 +46,8 @@ function updateMachineStatus(ajax, machine) {
         data: [{
           objectId: machine.objectId,
           serverUpdateTime: machine.serverUpdateTime,
-          status: 'normal',
-          overrideIndex: 0,
+          status: machine.status,
+          overrideIndex: machine.overrideIndex,
           updateTime: Math.floor(Date.now() / 1000)
         }]
       })
@@ -73,18 +73,26 @@ co(function*(){
   };
 
   yield authenticator.login(config.account, config.password);
-  yield log('update_machine_status.js logined');
 
-  const machine = yield getMachine(ajax);
+  let machine = yield getMachine(ajax);
+  let doUpdate = false;
+  // ハートビート代わりに、updateTimeを更新する
+  yield updateMachineStatus(ajax, machine);
+  machine = yield getMachine(ajax);
 
   const siteId = fs.readFileSync(siteIdFile);
 
-  if(machine.status == 'rebooting'){
+  if(machine.status == 'reboot'){
     yield log('rebooting...');
+    machine.status = 'rebooting';
+    yield updateMachineStatus(ajax, machine);
     process.exit(1);
   }else if(machine.status == 'waiting'){
     yield log('waiting...');
     process.exit(2);
+  }else if(machine.status != 'normal'){
+    machine.status = 'normal';
+    doUpdate = true;
   }
 
   if(siteId != machine.siteId){
@@ -95,9 +103,14 @@ co(function*(){
   if(machine.overrideIndex == '1') {
     fs.writeFileSync(indexFile, machine.index);
     yield log('overrided index to: ' + machine.index);
+    machine.overrideIndex = '0';
+    doUpdate = true;
   }
 
-  yield updateMachineStatus(ajax, machine);
+  if(doUpdate){
+    yield updateMachineStatus(ajax, machine);
+  }
+
 })
 .catch(error=>{
   console.log(error);
