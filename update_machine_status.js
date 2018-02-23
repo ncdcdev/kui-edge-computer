@@ -41,7 +41,7 @@ function updateMachineStatus(ajax, machine) {
   machine.status = 'normal';
   machine.overrideIndex = false;
   machine.updateTime = Math.floor(Date.now() / 1000);
-  return new Promise((resolve, rejext) => {
+  return new Promise((resolve, reject) => {
     ajax.post('data/batch/updateData')
       .send({
         objectName: 'Machine',
