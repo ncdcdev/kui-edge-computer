@@ -10,6 +10,7 @@ const siteIdFile = process.argv[4];
 /** exit code
  * exit 0 => normal
  * exit 1 => require reboot
+ * exit 2 => require waiting
  * exit 5 => unknown error
 **/
 
@@ -81,6 +82,9 @@ co(function*(){
   if(machine.status == 'rebooting'){
     yield log('rebooting...');
     process.exit(1);
+  }else if(machine.status == 'waiting'){
+    yield log('waiting...');
+    process.exit(2);
   }
 
   if(siteId != machine.siteId){

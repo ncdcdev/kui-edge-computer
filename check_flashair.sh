@@ -126,6 +126,15 @@ if [ ! -e ${SITE_ID_FILE} ]; then
   echo 0 > ${SITE_ID_FILE}
 fi
 ${NODE} ./update_machine_status.js ${INDEX_FILE} "${MACADDR}" ${SITE_ID_FILE} >> ${LOG_FILE}
+result=$?
+if [ $result = 1 ];
+then
+  reboot
+elif [ $result = 2 ];
+then
+  disconnect_soracom
+  exit_process 0
+fi
 
 disconnect_soracom
 
