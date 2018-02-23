@@ -202,13 +202,15 @@ function sendIndex(ajax, index){
       .send(query)
       .end(AppPot.Ajax.end((obj) => {
         const machine = obj.Machine[0];
-        machine.index = index;
         ajax.post('data/batch/updateData')
           .send({
             objectName: 'Machine',
-            data: [
-              machine
-            ]
+            data: [{
+              objectId: machine.objectId,
+              serverUpdateTime: machine.serverUpdateTime,
+              index: machine.index,
+              updateTime: Math.floor(Date.now() / 1000)
+            }]
           })
           .end(AppPot.Ajax.end((obj) => {
             resolve();
