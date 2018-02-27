@@ -123,6 +123,12 @@ co(function*(){
     doUpdate = true;
   }
 
+  if(machine.version != gittag){
+    fs.writeFileSync(gittagFile, machine.version);
+    yield log('update version to: ' + machine.version);
+    process.exit(5);
+  }
+
   if(siteId != machine.siteId){
     fs.writeFileSync(siteIdFile, machine.siteId);
     yield log('overrided siteId to: ' + machine.siteId);
@@ -141,12 +147,6 @@ co(function*(){
 
   if(doUpdate){
     yield updateMachineStatus(ajax, machine);
-  }
-
-  if(machine.version != gittag){
-    fs.writeFileSync(gittagFile, machine.version);
-    yield log('update version to: ' + machine.version);
-    process.exit(5);
   }
 
   if(machine.wlanSsid != ssid){
