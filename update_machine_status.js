@@ -18,6 +18,7 @@ const gittagFile = process.argv[7];
  * exit 3 => require halt
  * exit 4 => require update wlan settings
  * exit 5 => require update all codes using git
+ * exit 6 => require skip existing files in flashari
  * exit 255 => unknown error
 **/
 
@@ -132,6 +133,12 @@ co(function*(){
     yield log('overrided index to: ' + machine.index);
     machine.overrideIndex = '0';
     doUpdate = true;
+  }else if(machine.overrideIndex == '2') {
+    fs.writeFileSync(indexFile, 0);
+    yield log('overrided index to: 0 and skip existing files' + );
+    machine.overrideIndex = '0';
+    yield updateMachineStatus(ajax, machine);
+    process.exit(6);
   }
 
   if(doUpdate){

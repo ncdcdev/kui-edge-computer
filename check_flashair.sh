@@ -12,6 +12,8 @@ SSID_FILE=${STATUS_DIR}ssid.txt
 PSWD_FILE=${STATUS_DIR}pswd.txt
 GITTAG_FILE=${STATUS_DIR}git-tag.txt
 
+IS_SKIP=0
+
 IMAGE_CACHE=cache
 LOCK_FILE=/tmp/check_flashair.lock
 MACADDR=`ip addr show wlan0 | grep link/ether | sed -E "s@.*link/ether\s(\S+)(\s.*|$)@\1@g"`
@@ -172,6 +174,9 @@ then
   update_file
   disconnect_soracom
   exit_process 0
+elif [ $result = 6 ];
+then
+  IS_SKIP=1
 fi
 
 disconnect_soracom
@@ -221,7 +226,7 @@ do
   connect_soracom
   for file in ${IMAGE_CACHE}/*;
   do
-    ${NODE} ./recognize_upload.js ${INDEX_FILE} ${file} "${MACADDR}" ${SITE_ID_FILE} >> ${LOG_FILE}
+    ${NODE} ./recognize_upload.js ${INDEX_FILE} ${file} "${MACADDR}" ${SITE_ID_FILE} ${IS_SKIP} >> ${LOG_FILE}
     result=$?
     if [ $result = 0 ];
     then
@@ -240,7 +245,11 @@ do
     elif [ $result = 4 ];
     then
       echo "[Ignore] ${file} recognized but ignore status" | log
+    elif [ $result = 5 ];
+    then
+      echo "[Skipped] ${file}" | log
     fi
+
   done
   echo "done image loop" | log
   disconnect_soracom

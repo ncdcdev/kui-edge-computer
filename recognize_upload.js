@@ -11,6 +11,7 @@ const indexFile = process.argv[2];
 const imageFile = process.argv[3];
 const macAddr = process.argv[4];
 const siteIdFile = process.argv[5];
+const isSkip = process.argv[6];
 const siteId = fs.readFileSync(siteIdFile, {
   encoding: 'utf8'
 });
@@ -271,6 +272,12 @@ co(function*(){
   yield authenticator.login(account.username, account.password);
 
   yield log('recognize_upload.js logined ' + imageFile);
+
+  if(isSkip == '1'){
+    const index = yield updateIndex();
+    yield sendIndex(ajax, index);
+    process.exit(5);
+  }
 
   const result = yield all(filePath);
   console.log('--------');
