@@ -150,34 +150,45 @@ fi
 if [ ! -e ${GITTAG_FILE} ]; then
   echo 0 > ${GITTAG_FILE}
 fi
-${NODE} ./update_machine_status.js ${INDEX_FILE} "${MACADDR}" ${SITE_ID_FILE} "${SSID_FILE}" "${PSWD_FILE}" "${GITTAG_FILE}" >> ${LOG_FILE}
 
-result=$?
-if [ $result = 1 ];
-then
-  reboot
-elif [ $result = 2 ];
-then
-  disconnect_soracom
-  exit_process 0
-elif [ $result = 3 ];
-then
-  poweroff
-elif [ $result = 4 ];
-then
-  NEW_SSID=`cat ${SSID_FILE}`
-  NEW_PSWD=`cat ${PSWD_FILE}`
-  nmcli connection modify ${NET_WIFI_NAME} 802-11-wireless.ssid ${NEW_SSID}
-  nmcli connection modify ${NET_WIFI_NAME} wifi-sec.key-mgmt wpa-psk wifi-sec.psk ${NEW_PSWD}
-elif [ $result = 5 ];
-then
-  update_file
-  disconnect_soracom
-  exit_process 0
-elif [ $result = 6 ];
-then
-  IS_SKIP=1
-fi
+while :
+do
+  ${NODE} ./update_machine_status.js ${INDEX_FILE} "${MACADDR}" ${SITE_ID_FILE} "${SSID_FILE}" "${PSWD_FILE}" "${GITTAG_FILE}" >> ${LOG_FILE}
+
+  result=$?
+  if [ $result = 1 ];
+  then
+    reboot
+  elif [ $result = 2 ];
+  then
+    disconnect_soracom
+    exit_process 0
+  elif [ $result = 3 ];
+  then
+    poweroff
+  elif [ $result = 4 ];
+  then
+    NEW_SSID=`cat ${SSID_FILE}`
+    NEW_PSWD=`cat ${PSWD_FILE}`
+    nmcli connection modify ${NET_WIFI_NAME} 802-11-wireless.ssid ${NEW_SSID}
+    nmcli connection modify ${NET_WIFI_NAME} wifi-sec.key-mgmt wpa-psk wifi-sec.psk ${NEW_PSWD}
+    break
+  elif [ $result = 5 ];
+  then
+    update_file
+    disconnect_soracom
+    exit_process 0
+  elif [ $result = 6 ];
+  then
+    IS_SKIP=1
+    break
+  elif [ $result = 7 ];
+  then
+    disconnect_soracom
+    connect_soracom
+    continue
+  fi
+done
 
 disconnect_soracom
 

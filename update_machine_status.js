@@ -19,6 +19,7 @@ const gittagFile = process.argv[7];
  * exit 4 => require update wlan settings
  * exit 5 => require update all codes using git
  * exit 6 => require skip existing files in flashari
+ * exit 7 => require reconnect 3G network
  * exit 255 => unknown error
 **/
 
@@ -168,7 +169,7 @@ co(function*(){
 })
 .catch(error=>{
   if(error.results.code == 'ENOTFOUND' && error.results.syscall == 'getaddrinfo'){
-    process.exit(2);
+    process.exit(7);
   }
   console.log(error);
   console.log('-----finish unknown error');
