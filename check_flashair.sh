@@ -88,7 +88,7 @@ disconnect_soracom(){
 
 update_file(){
   git reset --hard HEAD
-  git pull --tags
+  git fetch --all
   git checkout refs/tags/`cat ${GITTAG_FILE}`
 }
 
@@ -238,7 +238,6 @@ do
   done
   echo "done image loop" | log
   disconnect_soracom
-exit_process 1
 done
 
 exit_process 0
