@@ -132,7 +132,7 @@ class LocalAuthenticator {
         .end(Ajax.end((obj)=>{
           this._authInfo.setToken(obj.results);
           resolve(obj.results);
-        }), reject);
+        }, reject));
     });
   }
   apiLogin(user, pass){

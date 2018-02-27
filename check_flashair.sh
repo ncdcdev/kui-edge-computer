@@ -1,7 +1,8 @@
 #!/bin/bash
 
 LOG_FILE=/var/log/check_flashair.log
-NETWORK_NAME=earthguide
+NET_3G_NAME=soracom
+NET_WIFI_NAME=earthguide
 NODE=/root/.nodebrew/node/v6.10.2/bin/node
 
 STATUS_DIR=status_files/
@@ -32,7 +33,7 @@ exit_process(){
 }
 
 connect_flashair(){
-  nmcli connection up ${NETWORK_NAME}
+  nmcli connection up ${NET_WIFI_NAME}
   nmcli device connect wlan0
   RESULT=$?
 
@@ -46,7 +47,7 @@ connect_flashair(){
 }
 
 connect_soracom(){
-  nmcli connection up soracom
+  nmcli connection up ${NET_3G_NAME}
   RESULT=$?
 
   if [ ${RESULT} != 0 ];
@@ -77,12 +78,12 @@ connect_soracom(){
 
 disconnect_flashair(){
   nmcli device disconnect wlan0
-  # nmcli connection down ${NETWORK_NAME}
+  # nmcli connection down ${NET_WIFI_NAME}
   echo disconnected from flashair | log
 }
 
 disconnect_soracom(){
-  nmcli connection down soracom
+  nmcli connection down ${NET_3G_NAME}
   echo disconnected from soracom-network | log
 }
 
@@ -161,8 +162,8 @@ elif [ $result = 4 ];
 then
   NEW_SSID=`cat ${SSID_FILE}`
   NEW_PSWD=`cat ${PSWD_FILE}`
-  nmcli connection modify ${NETWORK_NAME} 802-11-wireless.ssid ${NEW_SSID}
-  nmcli connection modify ${NETWORK_NAME} wifi-sec.key-mgmt wpa-psk wifi-sec.psk ${NEW_PSWD}
+  nmcli connection modify ${NET_WIFI_NAME} 802-11-wireless.ssid ${NEW_SSID}
+  nmcli connection modify ${NET_WIFI_NAME} wifi-sec.key-mgmt wpa-psk wifi-sec.psk ${NEW_PSWD}
 elif [ $result = 5 ];
 then
   update_file
