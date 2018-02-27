@@ -153,7 +153,7 @@ fi
 
 while :
 do
-  ${NODE} ./update_machine_status.js ${INDEX_FILE} "${MACADDR}" ${SITE_ID_FILE} "${SSID_FILE}" "${PSWD_FILE}" "${GITTAG_FILE}" >> ${LOG_FILE}
+  timeout 30 ${NODE} ./update_machine_status.js ${INDEX_FILE} "${MACADDR}" ${SITE_ID_FILE} "${SSID_FILE}" "${PSWD_FILE}" "${GITTAG_FILE}" >> ${LOG_FILE}
 
   result=$?
   if [ $result = 1 ];
@@ -183,6 +183,10 @@ do
     IS_SKIP=1
     break
   elif [ $result = 7 ];
+  then
+    connect_soracom
+    continue
+  elif [ $result > 100 ];
   then
     connect_soracom
     continue
