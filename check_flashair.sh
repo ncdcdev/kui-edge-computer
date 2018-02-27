@@ -77,7 +77,7 @@ connect_soracom(){
     exit_process 1
   fi
   rm ${FLAGFILEDIR}/sorafail*
-  sleep 5
+  sleep 10
   echo connected to soracom-network | log
 }
 
