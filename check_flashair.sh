@@ -166,6 +166,7 @@ then
 elif [ $result = 5 ];
 then
   update_file
+  disconnect_soracom
   exit_process 0
 fi
 
