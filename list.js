@@ -66,7 +66,7 @@ getFileList('/VTIMG')
     const lastFile = allFile[allFileNum - 1];
     const newIndex = parseInt(lastFile.name.substring(3));
     fs.writeFileSync(indexFile, newIndex);
-    fs.writeFileSync(listFile, lastFile.path);
+    fs.writeFileSync(listFile, lastFile.path + '\n');
     process.exit(2);
   }
 })
