@@ -24,11 +24,14 @@ log(){
   echo `date -Ins` ${msg} | tee -a ${LOG_FILE}
 }
 
+echo "start script..." | log
+
 exit_process(){
   rm -f ${LOCK_FILE}
   if [ "x${listfile}" != "x" ] && [ -e ${listfile} ];then
     rm ${listfile}
   fi
+  echo "end script..." | log
   exit $1;
 }
 
