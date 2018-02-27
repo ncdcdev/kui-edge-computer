@@ -26,8 +26,6 @@ log(){
   echo `date -Ins` ${msg} | tee -a ${LOG_FILE}
 }
 
-echo "start script..." | log
-
 exit_process(){
   rm -f ${LOCK_FILE}
   if [ "x${listfile}" != "x" ] && [ -e ${listfile} ];then
@@ -77,7 +75,7 @@ connect_soracom(){
     exit_process 1
   fi
   rm ${FLAGFILEDIR}/sorafail*
-  sleep 10
+  sleep 20
   echo connected to soracom-network | log
 }
 
@@ -114,6 +112,8 @@ then
   echo locking: ${LOCK_FILE} | log
   exit 0
 fi
+
+echo "start script..." | log
 
 touch ${LOCK_FILE}
 
