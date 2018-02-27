@@ -8,6 +8,5 @@ module.exports = {
   appVersion: "1.0.0",
   companyId: 63, 
   account: "taisei_edge00001",
-  password: "kG7ADRv77wRYhd9u",
-  wifiSsid: 'earthguide1'
+  password: "kG7ADRv77wRYhd9u"
 }
