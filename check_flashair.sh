@@ -3,10 +3,13 @@
 LOG_FILE=/var/log/check_flashair.log
 NETWORK_NAME=earthguide
 NODE=/root/.nodebrew/node/v6.10.2/bin/node
-INDEX_FILE=index.txt
-SITE_ID_FILE=siteid.txt
-SSID_FILE=ssid.txt
-PSWD_FILE=pswd.txt
+
+STATUS_DIR=status_files/
+INDEX_FILE=${STATUS_DIR}index.txt
+SITE_ID_FILE=${STATUS_DIR}siteid.txt
+SSID_FILE=${STATUS_DIR}ssid.txt
+PSWD_FILE=${STATUS_DIR}pswd.txt
+
 IMAGE_CACHE=cache
 LOCK_FILE=/tmp/check_flashair.lock
 MACADDR=`ip addr show wlan0 | grep link/ether | sed -E "s@.*link/ether\s(\S+)(\s.*|$)@\1@g"`
@@ -121,6 +124,11 @@ if [ `/bin/date +%M` -lt 4 ]; then
 fi
 
 update_file
+
+if [ ! -d ${STATUS_DIR} ]; then
+  mkdir ${STATUS_DIR}
+fi
+
 if [ ! -e ${INDEX_FILE} ]; then
   echo 0 > ${INDEX_FILE}
 fi

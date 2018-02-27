@@ -11,4 +11,4 @@ node_modules/
 *.swp
 logs
 cache
-index.sqlite3
+status_files
