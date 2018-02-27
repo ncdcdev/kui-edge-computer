@@ -244,30 +244,40 @@ do
   connect_soracom
   for file in ${IMAGE_CACHE}/*;
   do
-    ${NODE} ./recognize_upload.js ${INDEX_FILE} ${file} "${MACADDR}" ${SITE_ID_FILE} ${IS_SKIP} >> ${LOG_FILE}
-    result=$?
-    if [ $result = 0 ];
-    then
-      echo "[Success] ${file}" | log
-    elif [ $result = 1 ];
-    then
-      echo "[Failed] ${file} failed to recognize kui number" | log
-    elif [ $result = 2 ];
-    then
-      echo "[Failed] ${file} failed to upload data" | log
-      disconnect_soracom
-      exit_process 4
-    elif [ $result = 3 ];
-    then
-      echo "[Failed] ${file} kuinumber notfound" | log
-    elif [ $result = 4 ];
-    then
-      echo "[Ignore] ${file} recognized but ignore status" | log
-    elif [ $result = 5 ];
-    then
-      echo "[Skipped] until ${file}" | log
-    fi
-
+    while :
+    do
+      ${NODE} ./recognize_upload.js ${INDEX_FILE} ${file} "${MACADDR}" ${SITE_ID_FILE} ${IS_SKIP} >> ${LOG_FILE}
+      result=$?
+      if [ $result = 0 ];
+      then
+        echo "[Success] ${file}" | log
+        break
+      elif [ $result = 1 ];
+      then
+        echo "[Failed] ${file} failed to recognize kui number" | log
+        break
+      elif [ $result = 2 ];
+      then
+        echo "[Failed] ${file} failed to upload data" | log
+        connect_soracom
+        continue
+      elif [ $result = 3 ];
+      then
+        echo "[Failed] ${file} kuinumber notfound" | log
+        break
+      elif [ $result = 4 ];
+      then
+        echo "[Ignore] ${file} recognized but ignore status" | log
+        break
+      elif [ $result = 5 ];
+      then
+        echo "[Skipped] until ${file}" | log
+        exit_process 0
+      else
+        disconnect_soracom
+        exit_process 4
+      fi
+    done
   done
   echo "done image loop" | log
   disconnect_soracom
