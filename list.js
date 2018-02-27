@@ -73,6 +73,6 @@ getFileList('/VTIMG')
 .catch(e=>{
   console.log(e);
   console.log('finish unknown error...');
-  process.exit(2);
+  process.exit(255);
 });
 
