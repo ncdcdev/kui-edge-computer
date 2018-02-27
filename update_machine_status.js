@@ -168,7 +168,7 @@ co(function*(){
 })
 .catch(error=>{
   if(error.results.code == 'ENOTFOUND' && error.results.syscall == 'getaddrinfo'){
-    process.exit(1);
+    process.exit(2);
   }
   console.log(error);
   console.log('-----finish unknown error');
