@@ -23,7 +23,7 @@ mkdir -p ${FLAGFILEDIR}
 
 log(){
   msg=`cat -`
-  echo `date -Ins` ${msg} | tee -a ${LOG_FILE}
+  echo `date -Ins` ${msg} >> ${LOG_FILE}
 }
 
 exit_process(){
