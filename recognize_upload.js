@@ -210,7 +210,7 @@ function sendIndex(ajax, index){
             data: [{
               objectId: machine.objectId,
               serverUpdateTime: machine.serverUpdateTime,
-              index: machine.index,
+              index: index,
               updateTime: Math.floor(Date.now() / 1000)
             }]
           })
