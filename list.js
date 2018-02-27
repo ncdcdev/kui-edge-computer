@@ -62,7 +62,7 @@ getFileList('/VTIMG')
         process.exit(0);
       });
   }else{
-    const allFileNum = allFile.len;
+    const allFileNum = allFile.length;
     const lastFile = allFile[allFileNum - 1];
     const newIndex = parseInt(lastFile.name.substring(3));
     fs.writeFileSync(indexFile, newIndex);
