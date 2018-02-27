@@ -9,6 +9,7 @@ INDEX_FILE=${STATUS_DIR}index.txt
 SITE_ID_FILE=${STATUS_DIR}siteid.txt
 SSID_FILE=${STATUS_DIR}ssid.txt
 PSWD_FILE=${STATUS_DIR}pswd.txt
+GITTAG_FILE=${STATUS_DIR}git-tag.txt
 
 IMAGE_CACHE=cache
 LOCK_FILE=/tmp/check_flashair.lock
@@ -87,8 +88,8 @@ disconnect_soracom(){
 
 update_file(){
   git reset --hard HEAD
-  git checkout master
-  git pull
+  git pull --tags
+  git checkout refs/tags/`cat ${GITTAG_FILE}`
 }
 
 syncdate(){
@@ -123,8 +124,6 @@ if [ `/bin/date +%M` -lt 4 ]; then
   syncdate
 fi
 
-update_file
-
 if [ ! -d ${STATUS_DIR} ]; then
   mkdir ${STATUS_DIR}
 fi
@@ -141,7 +140,10 @@ fi
 if [ ! -e ${PSWD_FILE} ]; then
   echo 0 > ${PSWD_FILE}
 fi
-${NODE} ./update_machine_status.js ${INDEX_FILE} "${MACADDR}" ${SITE_ID_FILE} "${SSID_FILE}" "${PSWD_FILE}" >> ${LOG_FILE}
+if [ ! -e ${GITTAG_FILE} ]; then
+  echo 0 > ${GITTAG_FILE}
+fi
+${NODE} ./update_machine_status.js ${INDEX_FILE} "${MACADDR}" ${SITE_ID_FILE} "${SSID_FILE}" "${PSWD_FILE}" "${GITTAG_FILE}" >> ${LOG_FILE}
 
 result=$?
 if [ $result = 1 ];
@@ -160,6 +162,10 @@ then
   NEW_PSWD=`cat ${PSWD_FILE}`
   nmcli connection modify ${NETWORK_NAME} 802-11-wireless.ssid ${NEW_SSID}
   nmcli connection modify ${NETWORK_NAME} wifi-sec.key-mgmt wpa-psk wifi-sec.psk ${NEW_PSWD}
+elif [ $result = 5 ];
+then
+  update_file
+  exit_process 0
 fi
 
 disconnect_soracom

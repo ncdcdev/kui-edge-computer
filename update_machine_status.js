@@ -8,6 +8,7 @@ const macAddr = process.argv[3];
 const siteIdFile = process.argv[4];
 const ssidFile = process.argv[5];
 const pswdFile = process.argv[6];
+const gittagFile = process.argv[7];
 
 /** exit code
  * exit 0 => normal
@@ -15,7 +16,8 @@ const pswdFile = process.argv[6];
  * exit 2 => require waiting
  * exit 3 => require halt
  * exit 4 => require update wlan settings
- * exit 5 => unknown error
+ * exit 5 => require update all codes using git
+ * exit 255 => unknown error
 **/
 
 function getMachine(ajax){
@@ -97,6 +99,10 @@ co(function*(){
     encoding: 'utf8'
   });
 
+  const gittag = fs.readFileSync(gittagFile, {
+    encoding: 'utf8'
+  });
+
   if(machine.status == 'reboot'){
     yield log('rebooting...');
     machine.status = 'rebooting';
@@ -139,6 +145,12 @@ co(function*(){
     updatedWlan = true;
   }
 
+  if(machine.version != gittag){
+    fs.writeFileSync(gittagFile, machine.version);
+    yield log('update version to: ' + machine.version);
+    process.exit(5);
+  }
+
   if(doUpdate){
     yield updateMachineStatus(ajax, machine);
   }
@@ -151,5 +163,5 @@ co(function*(){
 .catch(error=>{
   console.log(error);
   console.log('-----finish unknown error');
-  process.exit(5);
+  process.exit(255);
 });
