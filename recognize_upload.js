@@ -328,6 +328,12 @@ co(function*(){
 })
 .catch(error=>{
   console.log(error);
+  if(error.results.code == 'ENOTFOUND' && error.results.syscall == 'getaddrinfo'){
+    process.exit(2);
+  }
+  if(error.results.code == 'ECONNABORTED' && error.results.errno == 'ETIME'){
+    process.exit(2);
+  }
   console.log('-----finish unknown error');
-  process.exit(2);
+  process.exit(255);
 });
