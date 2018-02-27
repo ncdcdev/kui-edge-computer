@@ -151,8 +151,12 @@ if [ ! -e ${GITTAG_FILE} ]; then
   echo 0 > ${GITTAG_FILE}
 fi
 
-while :
+for CNT in $(seq 1 10);
 do
+  if [ $CNT = 10 ];
+  then
+    reboot
+  fi
   timeout 30 ${NODE} ./update_machine_status.js ${INDEX_FILE} "${MACADDR}" ${SITE_ID_FILE} "${SSID_FILE}" "${PSWD_FILE}" "${GITTAG_FILE}" >> ${LOG_FILE}
 
   result=$?
@@ -244,8 +248,12 @@ do
   connect_soracom
   for file in ${IMAGE_CACHE}/*;
   do
-    while :
+    for CNT in $(seq 1 10);
     do
+      if [ $CNT = 10 ];
+      then
+        reboot
+      fi
       ${NODE} ./recognize_upload.js ${INDEX_FILE} ${file} "${MACADDR}" ${SITE_ID_FILE} ${IS_SKIP} >> ${LOG_FILE}
       result=$?
       if [ $result = 0 ];
