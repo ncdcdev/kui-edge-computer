@@ -168,10 +168,10 @@ co(function*(){
 
 })
 .catch(error=>{
+  console.log(error);
   if(error.results.code == 'ENOTFOUND' && error.results.syscall == 'getaddrinfo'){
     process.exit(7);
   }
-  console.log(error);
   console.log('-----finish unknown error');
   process.exit(255);
 });

@@ -51,6 +51,7 @@ connect_flashair(){
 
 connect_soracom(){
   nmcli connection up ${NET_3G_NAME}
+  systemctl start connection-recover.service
   RESULT=$?
 
   if [ ${RESULT} != 0 ];
@@ -86,6 +87,7 @@ disconnect_flashair(){
 }
 
 disconnect_soracom(){
+  systemctl stop connection-recover.service
   nmcli connection down ${NET_3G_NAME}
   echo disconnected from soracom-network | log
 }
@@ -109,7 +111,6 @@ CDIR=`pwd`
 
 if [ -e ${LOCK_FILE} ];
 then
-  echo locking: ${LOCK_FILE} | log
   exit 0
 fi
 
@@ -123,7 +124,6 @@ disconnect_soracom
 connect_soracom
 
 if [ `/bin/date +%Y` -lt 2000 ]; then
-  ./els31-firewall-disable
   syncdate
 fi
 
@@ -184,7 +184,6 @@ do
     break
   elif [ $result = 7 ];
   then
-    disconnect_soracom
     connect_soracom
     continue
   fi
