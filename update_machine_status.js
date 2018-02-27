@@ -135,7 +135,13 @@ co(function*(){
     yield log('overrided siteId to: ' + machine.siteId);
   }
 
-  if(machine.overrideIndex == '1') {
+  if(machine.overrideIndex == '0') {
+    const currentIndex = fs.readFileSync(siteIdFile, {
+      encoding: 'utf8'
+    });
+    machine.index = currentIndex;
+    doUpdate = true;
+  }else if(machine.overrideIndex == '1') {
     fs.writeFileSync(indexFile, machine.index);
     yield log('overrided index to: ' + machine.index);
     machine.overrideIndex = '0';

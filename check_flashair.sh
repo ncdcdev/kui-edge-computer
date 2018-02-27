@@ -198,7 +198,7 @@ do
   connect_flashair
   sleep 5s
   cat /proc/net/wireless | log
-  timeout 60 ${NODE} ./list.js ${INDEX_FILE} ${listfile} 10 >> ${LOG_FILE}
+  timeout 60 ${NODE} ./list.js ${INDEX_FILE} ${listfile} 10 ${IS_SKIP} >> ${LOG_FILE}
   result=$?
   listedfilecount=`cat ${listfile} | wc -l`
   echo "list file"
@@ -236,7 +236,7 @@ do
   connect_soracom
   for file in ${IMAGE_CACHE}/*;
   do
-    ${NODE} ./recognize_upload.js ${INDEX_FILE} ${file} "${MACADDR}" ${SITE_ID_FILE} ${IS_SKIP} >> ${LOG_FILE}
+    ${NODE} ./recognize_upload.js ${INDEX_FILE} ${file} "${MACADDR}" ${SITE_ID_FILE} >> ${LOG_FILE}
     result=$?
     if [ $result = 0 ];
     then
@@ -255,9 +255,6 @@ do
     elif [ $result = 4 ];
     then
       echo "[Ignore] ${file} recognized but ignore status" | log
-    elif [ $result = 5 ];
-    then
-      echo "[Skipped] ${file}" | log
     fi
 
   done
