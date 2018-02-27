@@ -6,12 +6,15 @@ const config = require('./config');
 const indexFile = process.argv[2];
 const macAddr = process.argv[3];
 const siteIdFile = process.argv[4];
+const ssidFile = process.argv[5];
+const pswdFile = process.argv[6];
 
 /** exit code
  * exit 0 => normal
  * exit 1 => require reboot
  * exit 2 => require waiting
  * exit 3 => require halt
+ * exit 4 => require update wlan settings
  * exit 5 => unknown error
 **/
 
@@ -77,11 +80,20 @@ co(function*(){
 
   let machine = yield getMachine(ajax);
   let doUpdate = false;
+  let updatedWlan = false;
   // ハートビート代わりに、updateTimeを更新する
   yield updateMachineStatus(ajax, machine);
   machine = yield getMachine(ajax);
 
   const siteId = fs.readFileSync(siteIdFile, {
+    encoding: 'utf8'
+  });
+
+  const ssid = fs.readFileSync(ssidFile, {
+    encoding: 'utf8'
+  });
+
+  const pswd = fs.readFileSync(pswdFile, {
     encoding: 'utf8'
   });
 
@@ -115,8 +127,24 @@ co(function*(){
     doUpdate = true;
   }
 
+  if(machine.wlanSsid != ssid){
+    fs.writeFileSync(ssidFile, machine.wlanSsid);
+    yield log('overrided wlanSsid to: ' + machine.wlanSsid);
+    updatedWlan = true;
+  }
+
+  if(machine.wlanPassword != pswd){
+    fs.writeFileSync(pswdFile, machine.wlanPassword);
+    yield log('overrided wlanPW to: ' + machine.wlanPassword);
+    updatedWlan = true;
+  }
+
   if(doUpdate){
     yield updateMachineStatus(ajax, machine);
+  }
+
+  if(updatedWlan){
+    process.exit(4);
   }
 
 })

@@ -5,6 +5,8 @@ NETWORK_NAME=earthguide
 NODE=/root/.nodebrew/node/v6.10.2/bin/node
 INDEX_FILE=index.txt
 SITE_ID_FILE=siteid.txt
+SSID_FILE=ssid.txt
+PSWD_FILE=pswd.txt
 IMAGE_CACHE=cache
 LOCK_FILE=/tmp/check_flashair.lock
 MACADDR=`ip addr show wlan0 | grep link/ether | sed -E "s@.*link/ether\s(\S+)(\s.*|$)@\1@g"`
@@ -125,7 +127,14 @@ fi
 if [ ! -e ${SITE_ID_FILE} ]; then
   echo 0 > ${SITE_ID_FILE}
 fi
-${NODE} ./update_machine_status.js ${INDEX_FILE} "${MACADDR}" ${SITE_ID_FILE} >> ${LOG_FILE}
+if [ ! -e ${SSID_FILE} ]; then
+  echo 0 > ${SSID_FILE}
+fi
+if [ ! -e ${PSWD_FILE} ]; then
+  echo 0 > ${PSWD_FILE}
+fi
+${NODE} ./update_machine_status.js ${INDEX_FILE} "${MACADDR}" ${SITE_ID_FILE} "${SSID_FILE}" "${PSWD_FILE}" >> ${LOG_FILE}
+
 result=$?
 if [ $result = 1 ];
 then
@@ -137,6 +146,12 @@ then
 elif [ $result = 3 ];
 then
   poweroff
+elif [ $result = 4 ];
+then
+  NEW_SSID=`cat ${SSID_FILE}`
+  NEW_PSWD=`${PSWD_FILE}`
+  nmcli connection modify ${NETWORK_NAME} 802-11-wireless.ssid ${NEW_SSID}
+  nmcli connection modify ${NETWORK_NAME} wifi-sec.key-mgmt wpa-psk wifi-sec.psk ${NEW_PSWD}
 fi
 
 disconnect_soracom
