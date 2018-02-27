@@ -4,6 +4,7 @@ const gm = require('gm');
 const PNG = require('pngjs').PNG;
 const fs = require('fs');
 const config = require('./config');
+const account = require('./account');
 const AppPot = require('./apppot-sdk-lite');
 
 const indexFile = process.argv[2];
@@ -267,7 +268,7 @@ co(function*(){
   };
 
   // ログイン
-  yield authenticator.login(config.account, config.password);
+  yield authenticator.login(account.username, account.password);
 
   yield log('recognize_upload.js logined ' + imageFile);
 

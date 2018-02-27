@@ -4,7 +4,6 @@ const fileNum = process.argv[4];
 
 const FlashAirLib = require('flashair2');
 const fs = require('fs');
-const config = require('./config');
 
 function getFileList(path){
   return new Promise((resolve, reject)=>{

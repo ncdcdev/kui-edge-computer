@@ -2,6 +2,7 @@ const fs = require('fs');
 const co = require('co');
 const AppPot = require('./apppot-sdk-lite');
 const config = require('./config');
+const account = require('./account');
 
 const indexFile = process.argv[2];
 const macAddr = process.argv[3];
@@ -78,7 +79,7 @@ co(function*(){
     });
   };
 
-  yield authenticator.login(config.account, config.password);
+  yield authenticator.login(account.username, account.password);
 
   let machine = yield getMachine(ajax);
   let doUpdate = false;

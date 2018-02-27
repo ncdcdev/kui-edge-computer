@@ -6,7 +6,5 @@ module.exports = {
   appId: "taisei_kui_develop",
   appKey: "b40b0497304642008a9fe808a7bbd9a3",
   appVersion: "1.0.0",
-  companyId: 63, 
-  account: "taisei_edge00001",
-  password: "kG7ADRv77wRYhd9u"
+  companyId: 63
 }
