@@ -87,6 +87,7 @@ disconnect_soracom(){
 }
 
 update_file(){
+  echo 'updating...' | log
   git reset --hard HEAD
   git fetch --all
   git checkout refs/tags/`cat ${GITTAG_FILE}`
