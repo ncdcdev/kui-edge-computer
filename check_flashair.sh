@@ -149,7 +149,7 @@ then
 elif [ $result = 4 ];
 then
   NEW_SSID=`cat ${SSID_FILE}`
-  NEW_PSWD=`${PSWD_FILE}`
+  NEW_PSWD=`cat ${PSWD_FILE}`
   nmcli connection modify ${NETWORK_NAME} 802-11-wireless.ssid ${NEW_SSID}
   nmcli connection modify ${NETWORK_NAME} wifi-sec.key-mgmt wpa-psk wifi-sec.psk ${NEW_PSWD}
 fi
