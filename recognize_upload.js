@@ -10,7 +10,9 @@ const indexFile = process.argv[2];
 const imageFile = process.argv[3];
 const macAddr = process.argv[4];
 const siteIdFile = process.argv[5];
-const siteId = fs.readFileSync(siteIdFile);
+const siteId = fs.readFileSync(siteIdFile, {
+  encoding: 'utf8'
+});
 
 const geometries = {
   kuiNumber: {

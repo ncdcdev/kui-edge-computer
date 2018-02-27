@@ -81,7 +81,9 @@ co(function*(){
   yield updateMachineStatus(ajax, machine);
   machine = yield getMachine(ajax);
 
-  const siteId = fs.readFileSync(siteIdFile);
+  const siteId = fs.readFileSync(siteIdFile, {
+    encoding: 'utf8'
+  });
 
   if(machine.status == 'reboot'){
     yield log('rebooting...');
