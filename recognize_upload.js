@@ -213,6 +213,7 @@ function sendIndex(ajax, index){
               objectId: machine.objectId,
               serverUpdateTime: machine.serverUpdateTime,
               index: index,
+              overrideIndex: 0,
               updateTime: Math.floor(Date.now() / 1000)
             }]
           })

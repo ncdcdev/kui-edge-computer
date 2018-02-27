@@ -136,8 +136,6 @@ co(function*(){
   }else if(machine.overrideIndex == '2') {
     fs.writeFileSync(indexFile, 0);
     yield log('overrided index to: 0 and skip existing files');
-    machine.overrideIndex = '0';
-    yield updateMachineStatus(ajax, machine);
     process.exit(6);
   }
 
