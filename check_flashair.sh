@@ -50,11 +50,18 @@ connect_flashair(){
 }
 
 connect_soracom(){
-  nmcli device | grep ${NET_3G_NAME} | grep ' connected'
+  nmcli device | grep ${NET_3G_NAME} | grep ' connected' > /dev/null
   if [ $? = 0 ];
   then
     systemctl stop connection-recover.service
     nmcli connection down ${NET_3G_NAME}
+    result=1
+    while [ $result != 0 ];
+    do
+      sleep 1
+      nmcli device | grep gsm | grep 'disconnected' > /dev/null
+      result=$?
+    done
   fi
 
   nmcli connection up ${NET_3G_NAME}
@@ -87,15 +94,23 @@ connect_soracom(){
   while [ $result != 0 ];
   do
     sleep 1
-    nmcli device | grep ${NET_3G_NAME} | grep ' connected'
+    nmcli device | grep ${NET_3G_NAME} | grep ' connected' > /dev/null
     result=$?
   done
+  sleep 20
   echo connected to soracom-network | log
 }
 
 disconnect_flashair(){
   # nmcli device disconnect wlan0
   nmcli connection down ${NET_WIFI_NAME}
+  result=1
+  while [ $result != 0 ];
+  do
+    sleep 1
+    nmcli device | grep gsm | grep 'disconnected' > /dev/null
+    result=$?
+  done
   echo disconnected from flashair | log
 }
 
@@ -177,7 +192,9 @@ do
   timeout 30 ${NODE} ./update_machine_status.js ${INDEX_FILE} "${MACADDR}" ${SITE_ID_FILE} "${SSID_FILE}" "${PSWD_FILE}" "${GITTAG_FILE}" >> ${LOG_FILE}
 
   result=$?
-  if [ $result = 1 ];
+  if [ $result = 0 ];
+    break
+  elif [ $result = 1 ];
   then
     reboot
   elif [ $result = 2 ];
