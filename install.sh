@@ -1,6 +1,6 @@
 #!/bin/bash
 
-apt install git
+apt install -y git
 curl -L git.io/nodebrew | perl - setup
 nodebrew install-binary v6.10.2
 nodebrew use v6.10.2
@@ -10,5 +10,7 @@ cd /home/atmark/KuiEdgeMachine
 npm install
 nmcli connection add type gsm ifname "*" con-name soracom apn soracom.io user sora password sora
 nmcli connection add type wifi ifname "*" con-name earthguide ssid earthguide1
-vim account.js
-cp ./check_flashair /etc/cron.d/
+cp account.example.js account.js
+echo edit account.js
+echo and
+echo exec \'cp ./check_flashair /etc/cron.d/\'
