@@ -211,7 +211,7 @@ do
     NEW_PSWD=`cat ${PSWD_FILE}`
     nmcli connection modify ${NET_WIFI_NAME} 802-11-wireless.ssid ${NEW_SSID}
     nmcli connection modify ${NET_WIFI_NAME} wifi-sec.key-mgmt wpa-psk wifi-sec.psk ${NEW_PSWD}
-    break
+    exit_process 0
   elif [ $result = 5 ];
   then
     update_file

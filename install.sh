@@ -1,7 +1,11 @@
 #!/bin/bash
 
-apt install -y git vim
+set -ex
+apt update
+apt install -y git vim graphicsmagick
 curl -L git.io/nodebrew | perl - setup
+echo 'export PATH=$HOME/.nodebrew/current/bin:$PATH' >> ~/.bashrc
+. ~/.bashrc
 nodebrew install-binary v6.10.2
 nodebrew use v6.10.2
 
@@ -11,6 +15,9 @@ npm install
 nmcli connection add type gsm ifname "*" con-name soracom apn soracom.io user sora password sora
 nmcli connection add type wifi ifname "*" con-name earthguide ssid earthguide1
 cp account.example.js account.js
+set +ex
+MACADDR=`ip addr show wlan0 | grep link/ether | sed -E "s@.*link/ether\s(\S+)(\s.*|$)@\1@g"`
+echo add records to Machine Table using \'${MACADDR}\'
 echo edit account.js
 echo and
 echo exec \'cp ./check_flashair /etc/cron.d/\'
