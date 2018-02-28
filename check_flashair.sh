@@ -104,19 +104,19 @@ connect_soracom(){
 disconnect_flashair(){
   # nmcli device disconnect wlan0
   nmcli connection down ${NET_WIFI_NAME}
-  result=1
-  while [ $result != 0 ];
-  do
-    sleep 1
-    nmcli device | grep gsm | grep 'disconnected' > /dev/null
-    result=$?
-  done
   echo disconnected from flashair | log
 }
 
 disconnect_soracom(){
   systemctl stop connection-recover.service
   nmcli connection down ${NET_3G_NAME}
+  result=1
+  while [ $result != 0 ];
+  do
+    nmcli device | grep gsm | grep 'disconnected' > /dev/null
+    result=$?
+    sleep 1
+  done
   echo disconnected from soracom-network | log
 }
 
@@ -193,6 +193,7 @@ do
 
   result=$?
   if [ $result = 0 ];
+  then
     break
   elif [ $result = 1 ];
   then
