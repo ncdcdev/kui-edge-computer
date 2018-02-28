@@ -50,6 +50,13 @@ connect_flashair(){
 }
 
 connect_soracom(){
+  nmcli device | grep ${NET_3G_NAME} | grep ' connected'
+  if [ $? = 0 ];
+  then
+    systemctl stop connection-recover.service
+    nmcli connection down ${NET_3G_NAME}
+  fi
+
   nmcli connection up ${NET_3G_NAME}
   RESULT=$?
   systemctl start connection-recover.service
@@ -80,7 +87,7 @@ connect_soracom(){
   while [ $result != 0 ];
   do
     sleep 1
-    nmcli device | grep ${NET_3G_NAME} | grep connected
+    nmcli device | grep ${NET_3G_NAME} | grep ' connected'
     result=$?
   done
   echo connected to soracom-network | log
