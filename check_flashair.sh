@@ -103,6 +103,10 @@ update_file(){
   git reset --hard HEAD
   git fetch --all
   git checkout refs/tags/`cat ${GITTAG_FILE}`
+  if [ $? != 0 ];
+  then
+    rm -f ${GITTAG_FILE}
+  fi
 }
 
 syncdate(){
