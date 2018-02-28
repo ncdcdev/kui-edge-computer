@@ -1,6 +1,6 @@
 #!/bin/bash
 
-apt install -y git
+apt install -y git vim
 curl -L git.io/nodebrew | perl - setup
 nodebrew install-binary v6.10.2
 nodebrew use v6.10.2
