@@ -37,7 +37,7 @@ exit_process(){
 
 connect_flashair(){
   nmcli connection up ${NET_WIFI_NAME}
-  nmcli device connect wlan0
+  # nmcli device connect wlan0
   RESULT=$?
 
   if [ ${RESULT} != 0 ];
@@ -51,8 +51,8 @@ connect_flashair(){
 
 connect_soracom(){
   nmcli connection up ${NET_3G_NAME}
-  systemctl start connection-recover.service
   RESULT=$?
+  systemctl start connection-recover.service
 
   if [ ${RESULT} != 0 ];
   then
@@ -76,13 +76,19 @@ connect_soracom(){
     exit_process 1
   fi
   rm ${FLAGFILEDIR}/sorafail*
-  sleep 20
+  result=1
+  while [ $result != 0 ];
+  do
+    sleep 1
+    nmcli device | grep ${NET_3G_NAME} | grep connected
+    result=$?
+  done
   echo connected to soracom-network | log
 }
 
 disconnect_flashair(){
-  nmcli device disconnect wlan0
-  # nmcli connection down ${NET_WIFI_NAME}
+  # nmcli device disconnect wlan0
+  nmcli connection down ${NET_WIFI_NAME}
   echo disconnected from flashair | log
 }
 
