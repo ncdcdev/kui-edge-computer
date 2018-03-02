@@ -88,6 +88,7 @@ co(function*(){
   let updatedWlan = false;
   // ハートビート代わりに、updateTimeを更新する
   yield updateMachineStatus(ajax, machine);
+  yield log('ping');
   machine = yield getMachine(ajax);
 
   const siteId = fs.readFileSync(siteIdFile, {
