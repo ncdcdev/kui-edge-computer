@@ -185,7 +185,8 @@ function buildKuiHitmachineData(kuiId, recognizedData, fileName){
     updateTime: Date.now()/1000,
     kuiId: kuiId,
     dataType: dataType,
-    fileName: fileName
+    fileName: fileName,
+    isAutoUploaded: 1
   };
 }
 
