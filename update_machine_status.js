@@ -57,7 +57,8 @@ function updateMachineStatus(ajax, machine) {
           serverUpdateTime: machine.serverUpdateTime,
           status: machine.status,
           overrideIndex: machine.overrideIndex,
-          updateTime: Math.floor(Date.now() / 1000)
+          updateTime: Math.floor(Date.now() / 1000),
+          pingDate: Date.now()
         }]
       })
       .end(AppPot.Ajax.end(resolve, reject));
@@ -86,7 +87,7 @@ co(function*(){
   let machine = yield getMachine(ajax);
   let doUpdate = false;
   let updatedWlan = false;
-  // ハートビート代わりに、updateTimeを更新する
+  // ハートビート代わりに、pingDateを更新する
   yield updateMachineStatus(ajax, machine);
   yield log('ping');
   machine = yield getMachine(ajax);
