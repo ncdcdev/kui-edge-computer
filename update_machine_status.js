@@ -113,8 +113,12 @@ co(function*(){
     machine.status = 'rebooting';
     yield updateMachineStatus(ajax, machine);
     process.exit(1);
-  }else if(machine.status == 'waiting'){
+  }else if(machine.status == 'waiting' || machine.status == 'halted'){
     yield log('waiting...');
+    if(machine.status == 'halted'){
+      machine.status = 'waiting';
+      yield updateMachineStatus(ajax, machine);
+    }
     process.exit(2);
   }else if(machine.status == 'halt'){
     yield log('halting...');

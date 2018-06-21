@@ -234,97 +234,93 @@ done
 
 disconnect_soracom
 
-while :
-do
-  rm -f ${IMAGE_CACHE}/*
-  listfile=$(mktemp "/tmp/${0##*/}.tmp.XXXXXX")
-  connect_flashair
-  sleep 5s
-  cat /proc/net/wireless | log
-  timeout 60 ${NODE} ./list.js ${INDEX_FILE} ${listfile} 10 ${IS_SKIP} >> ${LOG_FILE}
-  result=$?
-  listedfilecount=`cat ${listfile} | wc -l`
-  echo "list file"
-  cat ${listfile}
-  if [ $result = 1 ];
-  then
-    echo done | log
-    disconnect_flashair
-    exit_process 0
-  elif [ $result = 2 ];
-  then
-    :
-    # skip files
-  elif [ $result != 0 ];
-  then
-    echo "[Failed] failed to list files" | log
-    disconnect_flashair
-    exit_process 1
-  fi
-  if [ $listedfilecount = 0 ];
-  then
-    echo 'file count = 0' | log
-    disconnect_flashair
-    exit_process 0
-  fi
-
-  echo start download files | log
-  wget --timeout=10 --no-host-directories --directory-prefix=${IMAGE_CACHE} --input-file=${listfile} --append-output=${LOG_FILE}
+rm -f ${IMAGE_CACHE}/*
+listfile=$(mktemp "/tmp/${0##*/}.tmp.XXXXXX")
+connect_flashair
+sleep 5s
+cat /proc/net/wireless | log
+timeout 60 ${NODE} ./list.js ${INDEX_FILE} ${listfile} 10 ${IS_SKIP} >> ${LOG_FILE}
+result=$?
+listedfilecount=`cat ${listfile} | wc -l`
+echo "list file"
+cat ${listfile}
+if [ $result = 1 ];
+then
+  echo done | log
   disconnect_flashair
-  rm ${listfile}
+  exit_process 0
+elif [ $result = 2 ];
+then
+  :
+  # skip files
+elif [ $result != 0 ];
+then
+  echo "[Failed] failed to list files" | log
+  disconnect_flashair
+  exit_process 1
+fi
+if [ $listedfilecount = 0 ];
+then
+  echo 'file count = 0' | log
+  disconnect_flashair
+  exit_process 0
+fi
 
-  downloadedfilecount=`ls ${IMAGE_CACHE} -U1 | wc -l`
-  if [ ! $listedfilecount = $downloadedfilecount ];
-  then
-    echo "[Failed] failed to download files listed $listedfilecount downloaded $downloadedfilecount" | log
-    exit_process 2
-  fi
+echo start download files | log
+wget --timeout=10 --no-host-directories --directory-prefix=${IMAGE_CACHE} --input-file=${listfile} --append-output=${LOG_FILE}
+disconnect_flashair
+rm ${listfile}
 
-  connect_soracom
-  for file in ${IMAGE_CACHE}/*;
+downloadedfilecount=`ls ${IMAGE_CACHE} -U1 | wc -l`
+if [ ! $listedfilecount = $downloadedfilecount ];
+then
+  echo "[Failed] failed to download files listed $listedfilecount downloaded $downloadedfilecount" | log
+  exit_process 2
+fi
+
+connect_soracom
+for file in ${IMAGE_CACHE}/*;
+do
+  for CNT in $(seq 1 10); # 画像アップロードの再試行のためのループ
   do
-    for CNT in $(seq 1 10);
-    do
-      if [ $CNT = 10 ];
-      then
-        reboot
-      fi
-      ${NODE} ./recognize_upload.js ${INDEX_FILE} ${file} "${MACADDR}" ${SITE_ID_FILE} ${IS_SKIP} >> ${LOG_FILE}
-      result=$?
-      if [ $result = 0 ];
-      then
-        echo "[Success] ${file}" | log
-        break
-      elif [ $result = 1 ];
-      then
-        echo "[Failed] ${file} failed to recognize kui number" | log
-        break
-      elif [ $result = 2 ];
-      then
-        echo "[Failed] ${file} failed to upload data" | log
-        connect_soracom
-        continue
-      elif [ $result = 3 ];
-      then
-        echo "[Failed] ${file} kuinumber notfound" | log
-        break
-      elif [ $result = 4 ];
-      then
-        echo "[Ignore] ${file} recognized but ignore status" | log
-        break
-      elif [ $result = 5 ];
-      then
-        echo "[Skipped] until ${file}" | log
-        exit_process 0
-      else
-        disconnect_soracom
-        exit_process 4
-      fi
-    done
+    if [ $CNT = 10 ];
+    then
+      reboot
+    fi
+    ${NODE} ./recognize_upload.js ${INDEX_FILE} ${file} "${MACADDR}" ${SITE_ID_FILE} ${IS_SKIP} >> ${LOG_FILE}
+    result=$?
+    if [ $result = 0 ];
+    then
+      echo "[Success] ${file}" | log
+      break
+    elif [ $result = 1 ];
+    then
+      echo "[Failed] ${file} failed to recognize kui number" | log
+      break
+    elif [ $result = 2 ];
+    then
+      echo "[Failed] ${file} failed to upload data" | log
+      connect_soracom
+      continue
+    elif [ $result = 3 ];
+    then
+      echo "[Failed] ${file} kuinumber notfound" | log
+      break
+    elif [ $result = 4 ];
+    then
+      echo "[Ignore] ${file} recognized but ignore status" | log
+      break
+    elif [ $result = 5 ];
+    then
+      echo "[Skipped] until ${file}" | log
+      exit_process 0
+    else
+      disconnect_soracom
+      exit_process 4
+    fi
   done
-  echo "done image loop" | log
-  disconnect_soracom
 done
+disconnect_soracom
 
 exit_process 0
 
