@@ -16,7 +16,7 @@ nmcli connection add type gsm ifname "*" con-name soracom apn soracom.io user so
 nmcli connection add type wifi ifname "*" con-name earthguide ssid earthguide1
 cp account.example.js account.js
 set +ex
-MACADDR=`ip addr show wlan0 | grep link/ether | sed -E "s@.*link/ether\s(\S+)(\s.*|$)@\1@g"`
+MACADDR=`ip addr show eth0 | grep link/ether | sed -E "s@.*link/ether\s(\S+)(\s.*|$)@\1@g"`
 echo add records to Machine Table using \'${MACADDR}\'
 echo edit account.js
 echo and

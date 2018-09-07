@@ -16,7 +16,7 @@ IS_SKIP=0
 
 IMAGE_CACHE=cache
 LOCK_FILE=/tmp/check_flashair.lock
-MACADDR=`ip addr show wlan0 | grep link/ether | sed -E "s@.*link/ether\s(\S+)(\s.*|$)@\1@g"`
+MACADDR=`ip addr show eth0 | grep link/ether | sed -E "s@.*link/ether\s(\S+)(\s.*|$)@\1@g"`
 FLAGFILEDIR=/var/run/KuiEdgeMachine
 
 mkdir -p ${FLAGFILEDIR}
