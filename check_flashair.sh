@@ -253,6 +253,11 @@ elif [ $result = 2 ];
 then
   :
   # skip files
+elif [ $result = 3 ];
+then
+  # skip file when file count is 0
+  disconnect_flashair
+  exit_process 0
 elif [ $result != 0 ];
 then
   echo "[Failed] failed to list files" | log

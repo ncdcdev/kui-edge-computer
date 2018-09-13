@@ -63,11 +63,16 @@ getFileList('/VTIMG')
       });
   }else{
     const allFileNum = allFile.length;
-    const lastFile = allFile[allFileNum - 1];
-    const newIndex = parseInt(lastFile.name.substring(3));
-    fs.writeFileSync(indexFile, newIndex);
-    fs.writeFileSync(listFile, lastFile.path + '\n');
-    process.exit(2);
+    if (allFileNum == 0) {
+      fs.writeFileSync(indexFile, "-1");
+      process.exit(3);
+    }else{
+      const lastFile = allFile[allFileNum - 1];
+      const newIndex = parseInt(lastFile.name.substring(3));
+      fs.writeFileSync(indexFile, newIndex);
+      fs.writeFileSync(listFile, lastFile.path + '\n');
+      process.exit(2);
+    }
   }
 })
 .catch(e=>{
