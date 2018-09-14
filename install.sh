@@ -42,9 +42,5 @@ module.exports = {
   password: "${PASSWORD}"
 }
 EOT
-set +ex
-MACADDR=`ip addr show wlan0 | grep link/ether | sed -E "s@.*link/ether\s(\S+)(\s.*|$)@\1@g"`
-clear
-echo add records to Machine Table using \'${MACADDR}\'
-echo and
-echo exec \'cp ./check_flashair /etc/cron.d/\'
+cp ./check_flashair /etc/cron.d/
+reboot
