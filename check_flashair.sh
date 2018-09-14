@@ -43,9 +43,25 @@ connect_flashair(){
   if [ ${RESULT} != 0 ];
   then
     echo "[Failed] failed to connect flashair" | log
+    if [ -e ${FLAGFILEDIR}/flashairfail1 ];then
+      if [ -e ${FLAGFILEDIR}/flashairfail2 ];then
+        if [ -e ${FLAGFILEDIR}/flashairfail3 ];then
+          echo "[Failed] failed to connect flashair 4 times rebooting" | log
+          rm ${FLAGFILEDIR}/flashairfail*
+          reboot
+        else
+          touch ${FLAGFILEDIR}/flashairfail3;
+        fi
+      else
+        touch ${FLAGFILEDIR}/flashairfail2;
+      fi
+    else
+      touch ${FLAGFILEDIR}/flashairfail1;
+    fi
     disconnect_flashair
     exit_process 1
   fi
+  rm ${FLAGFILEDIR}/flashairfail* 2> /dev/null
   echo connected to flashair | log
 }
 
@@ -96,7 +112,7 @@ connect_wan3g(){
     disconnect_wan3g
     exit_process 1
   fi
-  rm ${FLAGFILEDIR}/wan3gfail*
+  rm ${FLAGFILEDIR}/wan3gfail* 2> /dev/null
   result=1
   while [ $result != 0 ];
   do
