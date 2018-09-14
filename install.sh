@@ -1,5 +1,27 @@
 #!/bin/bash
 
+USERNAME="x"
+PASSWORD="x"
+while getopts u:p: OPT
+do
+  case $OPT in
+    u)
+      USERNAME="$OPTARG"
+      ;;
+    p)
+      PASSWORD="$OPTARG"
+      ;;
+  esac
+done
+
+if [ "${USERNAME}" = "x" -o "${PASSWORD}" = "x" ];
+then
+  echo "Not enough arguments"
+  echo "Please specify username and password"
+  echo "Usage: $0 -u USERNAME -p PASSWORD"
+  exit 0
+fi
+
 set -ex
 apt update
 apt install -y git vim graphicsmagick
@@ -14,11 +36,15 @@ cd /home/atmark/KuiEdgeMachine
 npm install
 nmcli connection add type gsm ifname "*" con-name wan3g apn mmtcom.jp user 'mmt@mmt' password mmt
 nmcli connection add type wifi ifname "*" con-name flashair ssid earthguide1
-cp account.example.js account.js
+cat << EOT > account.js
+module.exports = {
+  username: "${USERNAME}",
+  password: "${PASSWORD}"
+}
+EOT
 set +ex
 MACADDR=`ip addr show wlan0 | grep link/ether | sed -E "s@.*link/ether\s(\S+)(\s.*|$)@\1@g"`
 clear
 echo add records to Machine Table using \'${MACADDR}\'
-echo edit account.js
 echo and
 echo exec \'cp ./check_flashair /etc/cron.d/\'

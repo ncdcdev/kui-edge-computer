@@ -75,7 +75,7 @@ co(function*(){
     return new Promise( (resolve, reject)=>{
       ajax.post('logs')
         .send({
-          message: '['+macAddr+']' + msg,
+          message: '[tprege]['+macAddr+']' + msg,
           logLevel: level || 'MONITOR'
         })
         .end(AppPot.Ajax.end(resolve, reject));

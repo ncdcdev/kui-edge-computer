@@ -50,6 +50,13 @@ connect_flashair(){
 }
 
 connect_wan3g(){
+  mmcli -m 0 | grep Number | grep unknown > /dev/null
+  if [ $? = 0 ];
+  then
+    echo "[Failed] SIM Card is not detected" | log
+    exit_process 1
+  fi
+
   nmcli device | grep ${NET_3G_NAME} | grep ' connected' > /dev/null
   if [ $? = 0 ];
   then
