@@ -1,8 +1,8 @@
 #!/bin/bash
 
 LOG_FILE=/var/log/check_flashair.log
-NET_3G_NAME=soracom
-NET_WIFI_NAME=earthguide
+NET_3G_NAME=wan3g
+NET_WIFI_NAME=flashair
 NODE=/root/.nodebrew/node/v6.10.2/bin/node
 
 STATUS_DIR=status_files/
@@ -49,7 +49,7 @@ connect_flashair(){
   echo connected to flashair | log
 }
 
-connect_soracom(){
+connect_wan3g(){
   nmcli device | grep ${NET_3G_NAME} | grep ' connected' > /dev/null
   if [ $? = 0 ];
   then
@@ -70,26 +70,26 @@ connect_soracom(){
 
   if [ ${RESULT} != 0 ];
   then
-    echo "[Failed] failed to connect soracom-network" | log
-    if [ -e ${FLAGFILEDIR}/sorafail1 ];then
-      if [ -e ${FLAGFILEDIR}/sorafail2 ];then
-        if [ -e ${FLAGFILEDIR}/sorafail3 ];then
-          echo "[Failed] failed to connect soracom-network 4 times rebooting" | log
-          rm ${FLAGFILEDIR}/sorafail*
+    echo "[Failed] failed to connect wan3g-network" | log
+    if [ -e ${FLAGFILEDIR}/wan3gfail1 ];then
+      if [ -e ${FLAGFILEDIR}/wan3gfail2 ];then
+        if [ -e ${FLAGFILEDIR}/wan3gfail3 ];then
+          echo "[Failed] failed to connect wan3g-network 4 times rebooting" | log
+          rm ${FLAGFILEDIR}/wan3gfail*
           reboot
         else
-          touch ${FLAGFILEDIR}/sorafail3;
+          touch ${FLAGFILEDIR}/wan3gfail3;
         fi
       else
-        touch ${FLAGFILEDIR}/sorafail2;
+        touch ${FLAGFILEDIR}/wan3gfail2;
       fi
     else
-      touch ${FLAGFILEDIR}/sorafail1;
+      touch ${FLAGFILEDIR}/wan3gfail1;
     fi
-    disconnect_soracom
+    disconnect_wan3g
     exit_process 1
   fi
-  rm ${FLAGFILEDIR}/sorafail*
+  rm ${FLAGFILEDIR}/wan3gfail*
   result=1
   while [ $result != 0 ];
   do
@@ -98,7 +98,7 @@ connect_soracom(){
     result=$?
   done
   sleep 20
-  echo connected to soracom-network | log
+  echo connected to wan3g-network | log
 }
 
 disconnect_flashair(){
@@ -107,7 +107,7 @@ disconnect_flashair(){
   echo disconnected from flashair | log
 }
 
-disconnect_soracom(){
+disconnect_wan3g(){
   systemctl stop connection-recover.service
   nmcli connection down ${NET_3G_NAME}
   result=1
@@ -117,7 +117,7 @@ disconnect_soracom(){
     result=$?
     sleep 1
   done
-  echo disconnected from soracom-network | log
+  echo disconnected from wan3g-network | log
 }
 
 update_file(){
@@ -151,9 +151,9 @@ echo "start script..." | log
 touch ${LOCK_FILE}
 
 disconnect_flashair
-disconnect_soracom
+disconnect_wan3g
 
-connect_soracom
+connect_wan3g
 
 if [ `/bin/date +%Y` -lt 2000 ]; then
   syncdate
@@ -200,7 +200,7 @@ do
     reboot
   elif [ $result = 2 ];
   then
-    disconnect_soracom
+    disconnect_wan3g
     exit_process 0
   elif [ $result = 3 ];
   then
@@ -215,7 +215,7 @@ do
   elif [ $result = 5 ];
   then
     update_file
-    disconnect_soracom
+    disconnect_wan3g
     exit_process 0
   elif [ $result = 6 ];
   then
@@ -223,16 +223,16 @@ do
     break
   elif [ $result = 7 ];
   then
-    connect_soracom
+    connect_wan3g
     continue
   elif [ $result > 100 ];
   then
-    connect_soracom
+    connect_wan3g
     continue
   fi
 done
 
-disconnect_soracom
+disconnect_wan3g
 
 rm -f ${IMAGE_CACHE}/*
 listfile=$(mktemp "/tmp/${0##*/}.tmp.XXXXXX")
@@ -283,7 +283,7 @@ then
   exit_process 2
 fi
 
-connect_soracom
+connect_wan3g
 for file in ${IMAGE_CACHE}/*;
 do
   for CNT in $(seq 1 10); # 画像アップロードの再試行のためのループ
@@ -305,7 +305,7 @@ do
     elif [ $result = 2 ];
     then
       echo "[Failed] ${file} failed to upload data" | log
-      connect_soracom
+      connect_wan3g
       continue
     elif [ $result = 3 ];
     then
@@ -320,12 +320,12 @@ do
       echo "[Skipped] until ${file}" | log
       exit_process 0
     else
-      disconnect_soracom
+      disconnect_wan3g
       exit_process 4
     fi
   done
 done
-disconnect_soracom
+disconnect_wan3g
 
 exit_process 0
 
