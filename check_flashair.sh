@@ -26,6 +26,12 @@ log(){
   echo `date -Ins` ${msg} >> ${LOG_FILE}
 }
 
+sendlog(){
+  connect_wan3g
+  ${NODE} ./sendlog.js "${MACADDR}" "$1"
+  disconnect_wan3g
+}
+
 exit_process(){
   rm -f ${LOCK_FILE}
   if [ "x${listfile}" != "x" ] && [ -e ${listfile} ];then
@@ -285,12 +291,14 @@ elif [ $result != 0 ];
 then
   echo "[Failed] failed to list files" | log
   disconnect_flashair
+  sendlog "failed to list files"
   exit_process 1
 fi
 if [ $listedfilecount = 0 ];
 then
   echo 'file count = 0' | log
   disconnect_flashair
+  sendlog "file count = 0"
   exit_process 0
 fi
 
