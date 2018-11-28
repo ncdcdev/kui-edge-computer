@@ -3,6 +3,7 @@ const co = require('co');
 const gm = require('gm');
 const PNG = require('pngjs').PNG;
 const fs = require('fs');
+const path = require('path');
 const config = require('./config');
 const account = require('./account');
 const AppPot = require('./apppot-sdk-lite');
@@ -168,21 +169,21 @@ function searchKui(ajax, kuiNumber){
   });
 }
 
-function buildKuiHitmachineData(kuiId, recognizedData, fileName){
-  let dataType = -1;
+function getDataType(recognizedData) {
   if( recognizedData[1] && !recognizedData[2] && !recognizedData[3] ){
-    dataType = 0;
+    return 0;
   }else if(recognizedData[3]){
-    dataType = 1;
+    return 1;
   }
-  if( dataType < 0 ){
-    return {failed:true};
-  }
+  return false;
+}
 
+function buildKuiHitmachineData(kuiId, dataType, fileName, dateTime){
+  const _dateTime = dateTime ? dateTime : Date.now()/1000;
   return {
     scopeType: 3,
-    createTime: Date.now()/1000,
-    updateTime: Date.now()/1000,
+    createTime: _dateTime,
+    updateTime: _dateTime,
     kuiId: kuiId,
     dataType: dataType,
     fileName: fileName,
@@ -248,11 +249,126 @@ function insertKuiHitMachineData(ajax, data){
   });
 }
 
+function getMachineType(ajax, siteId) {
+  const searchMachineQuery = {
+    'from': {
+      'phyName' :'SiteMethod',
+      'alias' :'SiteMethod'
+    },
+    'where': {
+      'expression': {
+        'source': '#SiteMethod.siteId = ?',
+        'params': [siteId]
+      }
+    }
+  };
+  return new Promise((resolve, reject)=>{
+    ajax.post('data/SiteMethod')
+      .send(searchMachineQuery)
+      .end(AppPot.Ajax.end((obj)=>{
+          resolve(obj.SiteMethod.kuiHitMachineManagerId);
+        }, (err)=>{
+          reject(err);
+        })
+      );
+  });
+}
+
+function* exitWithRecognizeError(ajax) {
+  const index = yield updateIndex();
+  yield sendIndex(ajax, index);
+  yield log('recognize_upload.js finish recognize error' + imageFile, 'ERROR');
+  console.log('-----finish recognize error');
+  process.exit(1);
+}
+
+function* getKuiRecord(ajax, kuiNumber) {
+  const kuiList = yield searchKui(ajax, kuiNumber);
+  if(kuiList.length == 0){
+    const index = yield updateIndex();
+    yield sendIndex(ajax, index);
+    yield log('recognize_upload.js finish kui not found kuiNumber: ' + kuiNumber + ' ' + imageFile, 'ERROR');
+    console.log('-----finish kui not found');
+    process.exit(3);
+  }
+  return kuiList[0];
+}
+
+function uploadImage(File, filePath) {
+  const fileContent = fs.readFileSync(filePath);
+  const fileName = path.basename(filePath);
+  return File.create(fileName, fileContent);
+}
+
+function* registerKHMD(ajax, data, kuiNumber) {
+  yield insertKuiHitMachineData(ajax, data);
+  const index = yield updateIndex();
+  yield sendIndex(ajax, index);
+  yield log('recognize_upload.js complete kuiNumber: ' + kuiNumber + ' ' + imageFile);
+}
+
+function* earthguide(ajax, log, File, filePath) {
+  const result = yield all(filePath);
+  console.log('--------');
+  console.log(result[0] + ' ' + result[1] + ' ' + result[2] + ' ' + result[3]);
+  console.log('--------');
+  const matches = result[0].match(/(\d{3})-(\d{3})/);
+  if(!matches){
+    exitWithRecognizeError(ajax);
+  }
+  const kuiNumber = parseInt( matches[2] );
+
+  // 杭データ確認
+  const kuiObj = yield getKuiRecord(ajax, kuiNumber);
+
+  // 画像アップロード
+  const file = yield uploadImage(File, filePath);
+
+  const dataType = getDataType(result);
+  if (!Number.isInteger(dataType)) {
+    const index = yield updateIndex();
+    yield sendIndex(ajax, index);
+    console.log('-----finish ignore kui number');
+    yield log('recognize_upload.js finish ignore status kuiNumber: ' + kuiNumber + ' ' + imageFile);
+    process.exit(4);
+  }
+  // データ登録
+  const kuiHMD = yield buildKuiHitmachineData(kuiObj.objectId, dataType, file.name);
+  registerKHMD(ajax, kuiHMD, kuiNumber);
+  console.log('-----complete');
+  process.exit(0);
+}
+
+function* sanwa(ajax, log, File, filePath) {
+  const filename = path.basename(filePath);
+  const matches = filename.match(/^(\d+)_(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})_(\d+)_(\d+)\.[a-zA-Z]+$/);
+  if (!matches) {
+    exitWithRecognizeError(ajax);
+  }
+  const year = matches[2];
+  const month = matches[3];
+  const day = matches[4];
+  const hour = matches[5];
+  const minute = matches[6];
+  const second = matches[7];
+  const kuiNumber = parseInt(matches[8]);
+  const dataType = parseInt(matches[9]);
+
+  // 杭データ確認
+  const kuiObj = yield getKuiRecord(ajax, kuiNumber);
+  // 画像アップロード
+  const file = yield uploadImage(File, filePath);
+  const createDate = new Date(`${year}/${month}/${day} ${hour}:${minute}:${second}+0900`);
+
+  const kuiHMD = yield buildKuiHitmachineData(kuiObj.objectId, dataType, file.name, createDate.valueOf()/1000);
+  registerKHMD(ajax, kuiHMD, kuiNumber);
+  console.log('-----complete');
+  process.exit(0);
+}
 
 co(function*(){
   console.log('-----start');
   const filePath = __dirname + '/' + imageFile;
-
 
   // AppPot API呼び出し準備
   const authInfo = new AppPot.AuthInfo();
@@ -282,50 +398,26 @@ co(function*(){
     process.exit(5);
   }
 
-  const result = yield all(filePath);
-  console.log('--------');
-  console.log(result[0] + ' ' + result[1] + ' ' + result[2] + ' ' + result[3]);
-  console.log('--------');
-  const matches = result[0].match(/(\d{3})-(\d{3})/);
-  if(!matches){
-    const index = yield updateIndex();
-    yield sendIndex(ajax, index);
-    yield log('recognize_upload.js finish recognize error' + imageFile, 'ERROR');
-    console.log('-----finish recognize error');
-    process.exit(1);
-  }
-  const kuiNumber = parseInt( matches[2] );
+  const machineType = yield getMachineType(ajax, siteId);
 
-  // 杭データ確認
-  const kuiList = yield searchKui(ajax, kuiNumber);
-  if(kuiList.length == 0){
-    const index = yield updateIndex();
-    yield sendIndex(ajax, index);
-    yield log('recognize_upload.js finish kui not found kuiNumber: ' + kuiNumber + ' ' + imageFile, 'ERROR');
-    console.log('-----finish kui not found');
-    process.exit(3);
-  }
+  if (!machineType) {
+    yield earthguide(ajax, log, File, filePath);
+  } 
 
-  // 画像アップロード
-  const fileContent = fs.readFileSync(filePath);
-  const fileName = require('path').basename(filePath);
-  const file = yield File.create(fileName, fileContent);
-
-  // データ登録
-  const kuiHMD = yield buildKuiHitmachineData(kuiList[0].objectId, result, file.name);
-  if(kuiHMD.failed){
-    const index = yield updateIndex();
-    yield sendIndex(ajax, index);
-    console.log('-----finish ignore kui number');
-    yield log('recognize_upload.js finish ignore status kuiNumber: ' + kuiNumber + ' ' + imageFile);
-    process.exit(4);
+  switch (machineType) {
+    case 'kuiHitMachineManager-0001': {
+      yield earthguide(ajax, log, File, filePath);
+      break;
+    }
+    case 'kuiHitMachineManager-0002': {
+      yield sanwa(ajax, log, File, filePath);
+      break;
+    }
+    default: {
+      yield log(`unknown machine type ${machineType}`);
+      process.exit(6);
+    }
   }
-  const kuiHMDResult = yield insertKuiHitMachineData(ajax, kuiHMD);
-  const index = yield updateIndex();
-  yield sendIndex(ajax, index);
-  yield log('recognize_upload.js complete kuiNumber: ' + kuiNumber + ' ' + imageFile);
-  console.log('-----complete');
-  process.exit(0);
 })
 .catch(error=>{
   console.log(error);

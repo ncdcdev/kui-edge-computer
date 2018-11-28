@@ -1,7 +1,8 @@
 #!/bin/bash
 
 LOG_FILE=/var/log/check_flashair.log
-NET_3G_NAME=wan3g
+NET_3G_NAME=soracom
+# NET_3G_NAME=wan3g
 NET_WIFI_NAME=flashair
 NODE=/root/.nodebrew/node/v6.10.2/bin/node
 
@@ -349,6 +350,10 @@ do
     elif [ $result = 5 ];
     then
       echo "[Skipped] until ${file}" | log
+      exit_process 0
+    elif [ $result = 6 ];
+    then
+      echo "[Failed] Unknown machine type" | log
       exit_process 0
     else
       disconnect_wan3g
