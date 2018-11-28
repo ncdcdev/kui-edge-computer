@@ -66,7 +66,7 @@ function updateMachineStatus(ajax, machine) {
   });
 }
 
-function getMachineType(siteId) {
+function getMachineType(ajax, siteId) {
   const searchMachineQuery = {
     'from': {
       'phyName' :'SiteMethod',
@@ -171,7 +171,7 @@ co(function*(){
     yield log('overrided siteId to: ' + machine.siteId);
   }
 
-  let newMachineType = yield getMachineType(machine.siteId);
+  let newMachineType = yield getMachineType(ajax, machine.siteId);
   if (!newMachineType) {
     newMachineType = 'kuiHitMachineManager-0001';
   }

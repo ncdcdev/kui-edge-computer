@@ -31,7 +31,7 @@ function earthguide() {
   getFileList(rootDir)
   .then(files=>{
     return Promise.all(files.map(file=>{
-      return getFileList(rootDir + file.name);
+      return getFileList(`${rootDir}/${file.name}`);
     }));
   })
   .then(results=>{
@@ -91,11 +91,11 @@ function earthguide() {
 
 function sanwa() {
   console.log('start...');
-  rootDir = '/SANWA';
+  const rootDir = '/SANWA';
   getFileList(rootDir)
   .then(files=>{
     return Promise.all(files.map(file=>{
-      return getFileList(rootDir + file.name);
+      return getFileList(`${rootDir}/${file.name}`);
     }));
   })
   .then(results=>{

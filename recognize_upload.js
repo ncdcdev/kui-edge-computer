@@ -182,7 +182,7 @@ function getDataType(recognizedData) {
   return false;
 }
 
-function buildKuiHitmachineData(kuiId, dataType, fileName, dateTime){
+function buildKuiHitmachineData(kuiId, dataType, fileName, screenType, dateTime){
   const _dateTime = dateTime ? dateTime : Date.now()/1000;
   return {
     scopeType: 3,
@@ -190,6 +190,7 @@ function buildKuiHitmachineData(kuiId, dataType, fileName, dateTime){
     updateTime: _dateTime,
     kuiId: kuiId,
     dataType: dataType,
+    screenType: screenType,
     fileName: fileName,
     isAutoUploaded: 1
   };
@@ -316,7 +317,7 @@ function* earthguide(File, filePath) {
     process.exit(4);
   }
   // データ登録
-  const kuiHMD = yield buildKuiHitmachineData(kuiObj.objectId, dataType, file.name);
+  const kuiHMD = yield buildKuiHitmachineData(kuiObj.objectId, dataType, file.name, 0);
   yield registerKHMD(index, kuiHMD, kuiNumber);
   console.log('-----complete');
   process.exit(0);
@@ -324,7 +325,7 @@ function* earthguide(File, filePath) {
 
 function* sanwa(File, filePath) {
   const filename = path.basename(filePath);
-  const matches = filename.match(/^(\d+)_(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})_(\d+)_(\d+)\.[a-zA-Z]+$/);
+  const matches = filename.match(/^(\d+)_(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})_(\d+)_(\d+)_(\d+)\.[a-zA-Z]+$/);
   if (!matches) {
     exitWithRecognizeError(null);
   }
@@ -336,7 +337,8 @@ function* sanwa(File, filePath) {
   const minute = matches[6];
   const second = matches[7];
   const kuiNumber = parseInt(matches[8]);
-  const dataType = parseInt(matches[9]);
+  const screenType = parseInt(matches[9]);
+  const dataType = parseInt(matches[10]);
 
   // 杭データ確認
   const kuiObj = yield getKuiRecord(index, kuiNumber);
@@ -344,7 +346,7 @@ function* sanwa(File, filePath) {
   const file = yield uploadImage(File, filePath);
   const createDate = new Date(`${year}/${month}/${day} ${hour}:${minute}:${second}+0900`);
 
-  const kuiHMD = yield buildKuiHitmachineData(kuiObj.objectId, dataType, file.name, createDate.valueOf()/1000);
+  const kuiHMD = yield buildKuiHitmachineData(kuiObj.objectId, dataType, file.name, screenType, createDate.valueOf()/1000);
   yield registerKHMD(index, kuiHMD, kuiNumber);
   console.log('-----complete');
   process.exit(0);
