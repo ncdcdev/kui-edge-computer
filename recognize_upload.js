@@ -13,10 +13,16 @@ const imageFile = process.argv[3];
 const macAddr = process.argv[4];
 const siteIdFile = process.argv[5];
 const isSkip = process.argv[6];
+const machineTypeFile = process.argv[7];
 
 const siteId = fs.readFileSync(siteIdFile, {
   encoding: 'utf8'
 });
+
+const machineType = fs.readFileSync(machineTypeFile, {
+  encoding: 'utf8'
+});
+
 
 const geometries = {
   kuiNumber: {
@@ -247,31 +253,6 @@ function insertKuiHitMachineData(data){
   });
 }
 
-function getMachineType(siteId) {
-  const searchMachineQuery = {
-    'from': {
-      'phyName' :'SiteMethod',
-      'alias' :'SiteMethod'
-    },
-    'where': {
-      'expression': {
-        'source': '#SiteMethod.siteId = ?',
-        'params': [siteId]
-      }
-    }
-  };
-  return new Promise((resolve, reject)=>{
-    ajax.post('data/SiteMethod')
-      .send(searchMachineQuery)
-      .end(AppPot.Ajax.end((obj)=>{
-          resolve(obj.SiteMethod.kuiHitMachineManagerId);
-        }, (err)=>{
-          reject(err);
-        })
-      );
-  });
-}
-
 function* exitWithRecognizeError(index) {
   if (index !== undefined && index !== null && index !== false) {
     yield updateIndex(index);
@@ -306,7 +287,7 @@ function* registerKHMD(index, data, kuiNumber) {
 
 function* earthguide(File, filePath) {
   const imgfileMatches = imageFile.match(/.*IMG(\d+).*/);
-  const index = parseInt( imgFileMatches[1] );
+  const index = parseInt( imgfileMatches[1] );
   if(isSkip == '1'){
     yield updateIndex(index);
     process.exit(5);
@@ -397,13 +378,6 @@ co(function*(){
   yield authenticator.login(account.username, account.password);
 
   yield log('upload.js logined ' + imageFile);
-
-  const machineType = yield getMachineType(siteId);
-
-
-  if (!machineType) {
-    yield earthguide(File, filePath);
-  } 
 
   switch (machineType) {
     case 'kuiHitMachineManager-0001': {

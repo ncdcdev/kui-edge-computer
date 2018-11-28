@@ -13,6 +13,7 @@ SITE_ID_FILE=${STATUS_DIR}siteid.txt
 SSID_FILE=${STATUS_DIR}ssid.txt
 PSWD_FILE=${STATUS_DIR}pswd.txt
 GITTAG_FILE=${STATUS_DIR}git-tag.txt
+MACHINETYPE_FILE=${STATUS_DIR}machine_type.txt
 
 IS_SKIP=0
 
@@ -213,6 +214,9 @@ fi
 if [ ! -e ${GITTAG_FILE} ]; then
   echo 0 > ${GITTAG_FILE}
 fi
+if [ ! -e ${MACHINETYPE_FILE} ]; then
+  echo 0 > ${MACHINETYPE_FILE}
+fi
 
 for CNT in $(seq 1 10);
 do
@@ -220,7 +224,7 @@ do
   then
     reboot
   fi
-  timeout 30 ${NODE} ./update_machine_status.js ${INDEX_FILE} "${MACADDR}" ${SITE_ID_FILE} "${SSID_FILE}" "${PSWD_FILE}" "${GITTAG_FILE}" >> ${LOG_FILE}
+  timeout 30 ${NODE} ./update_machine_status.js ${INDEX_FILE} "${MACADDR}" ${SITE_ID_FILE} "${SSID_FILE}" "${PSWD_FILE}" "${GITTAG_FILE}" "${MACHINETYPE_FILE}" >> ${LOG_FILE}
 
   result=$?
   if [ $result = 0 ];
@@ -270,7 +274,7 @@ listfile=$(mktemp "/tmp/${0##*/}.tmp.XXXXXX")
 connect_flashair
 sleep 5s
 cat /proc/net/wireless | log
-timeout 60 ${NODE} ./list.js ${INDEX_FILE} ${listfile} 10 ${IS_SKIP} >> ${LOG_FILE}
+timeout 60 ${NODE} ./list.js ${INDEX_FILE} ${listfile} 10 ${IS_SKIP} "${MACHINETYPE_FILE}" >> ${LOG_FILE}
 result=$?
 listedfilecount=`cat ${listfile} | wc -l`
 echo "list file"
@@ -325,7 +329,7 @@ do
     then
       reboot
     fi
-    ${NODE} ./recognize_upload.js ${INDEX_FILE} ${file} "${MACADDR}" ${SITE_ID_FILE} ${IS_SKIP} >> ${LOG_FILE}
+    ${NODE} ./recognize_upload.js ${INDEX_FILE} ${file} "${MACADDR}" ${SITE_ID_FILE} ${IS_SKIP} "${MACHINETYPE_FILE}" >> ${LOG_FILE}
     result=$?
     if [ $result = 0 ];
     then
