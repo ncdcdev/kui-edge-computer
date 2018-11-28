@@ -3,7 +3,8 @@
 LOG_FILE=/var/log/check_flashair.log
 NET_3G_NAME=soracom
 # NET_3G_NAME=wan3g
-NET_WIFI_NAME=flashair
+NET_WIFI_NAME=earthguide
+# NET_WIFI_NAME=flashair
 NODE=/root/.nodebrew/node/v6.10.2/bin/node
 
 STATUS_DIR=status_files/

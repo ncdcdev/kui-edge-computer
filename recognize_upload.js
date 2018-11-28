@@ -125,11 +125,8 @@ function all(path){
   ]);
 }
 
-function updateIndex(){
-  const matches = imageFile.match(/.*IMG(\d+).*/);
-  const index = parseInt( matches[1] );
-
-  return new Promise((resolve, reject) => {
+function* updateIndex(index){
+  yield new Promise((resolve, reject) => {
     fs.writeFile(indexFile, index, (err) => {
       if(err) {
         reject(err);
@@ -138,9 +135,10 @@ function updateIndex(){
       }
     });
   });
+  yield sendIndex(index);
 }
 
-function searchKui(ajax, kuiNumber){
+function searchKui(kuiNumber){
   const searchKuiQuery = {
     'from': {
       'phyName' :'Kui',
@@ -191,7 +189,7 @@ function buildKuiHitmachineData(kuiId, dataType, fileName, dateTime){
   };
 }
 
-function sendIndex(ajax, index){
+function sendIndex(index){
   const query = {
     'from': {
       'phyName': 'Machine',
@@ -229,7 +227,7 @@ function sendIndex(ajax, index){
   });
 }
 
-function insertKuiHitMachineData(ajax, data){
+function insertKuiHitMachineData(data){
   return new Promise((resolve, reject)=>{
     ajax.post('data/batch/addData')
       .send({
@@ -249,7 +247,7 @@ function insertKuiHitMachineData(ajax, data){
   });
 }
 
-function getMachineType(ajax, siteId) {
+function getMachineType(siteId) {
   const searchMachineQuery = {
     'from': {
       'phyName' :'SiteMethod',
@@ -274,20 +272,20 @@ function getMachineType(ajax, siteId) {
   });
 }
 
-function* exitWithRecognizeError(ajax) {
-  const index = yield updateIndex();
-  yield sendIndex(ajax, index);
-  yield log('recognize_upload.js finish recognize error' + imageFile, 'ERROR');
+function* exitWithRecognizeError(index) {
+  if (index !== undefined && index !== null && index !== false) {
+    yield updateIndex(index);
+  }
+  yield log('upload.js finish recognize error' + imageFile, 'ERROR');
   console.log('-----finish recognize error');
   process.exit(1);
 }
 
-function* getKuiRecord(ajax, kuiNumber) {
-  const kuiList = yield searchKui(ajax, kuiNumber);
+function* getKuiRecord(index, kuiNumber) {
+  const kuiList = yield searchKui(kuiNumber);
   if(kuiList.length == 0){
-    const index = yield updateIndex();
-    yield sendIndex(ajax, index);
-    yield log('recognize_upload.js finish kui not found kuiNumber: ' + kuiNumber + ' ' + imageFile, 'ERROR');
+    yield updateIndex(index);
+    yield log('upload.js finish kui not found kuiNumber: ' + kuiNumber + ' ' + imageFile, 'ERROR');
     console.log('-----finish kui not found');
     process.exit(3);
   }
@@ -300,51 +298,56 @@ function uploadImage(File, filePath) {
   return File.create(fileName, fileContent);
 }
 
-function* registerKHMD(ajax, data, kuiNumber) {
-  yield insertKuiHitMachineData(ajax, data);
-  const index = yield updateIndex();
-  yield sendIndex(ajax, index);
-  yield log('recognize_upload.js complete kuiNumber: ' + kuiNumber + ' ' + imageFile);
+function* registerKHMD(index, data, kuiNumber) {
+  yield insertKuiHitMachineData(data);
+  yield updateIndex(index);
+  yield log('upload.js complete kuiNumber: ' + kuiNumber + ' ' + imageFile);
 }
 
-function* earthguide(ajax, log, File, filePath) {
+function* earthguide(File, filePath) {
+  const imgfileMatches = imageFile.match(/.*IMG(\d+).*/);
+  const index = parseInt( imgFileMatches[1] );
+  if(isSkip == '1'){
+    yield updateIndex(index);
+    process.exit(5);
+  }
   const result = yield all(filePath);
   console.log('--------');
   console.log(result[0] + ' ' + result[1] + ' ' + result[2] + ' ' + result[3]);
   console.log('--------');
   const matches = result[0].match(/(\d{3})-(\d{3})/);
   if(!matches){
-    exitWithRecognizeError(ajax);
+    exitWithRecognizeError(index);
   }
   const kuiNumber = parseInt( matches[2] );
 
   // 杭データ確認
-  const kuiObj = yield getKuiRecord(ajax, kuiNumber);
+  const kuiObj = yield getKuiRecord(index, kuiNumber);
 
   // 画像アップロード
   const file = yield uploadImage(File, filePath);
 
   const dataType = getDataType(result);
   if (!Number.isInteger(dataType)) {
-    const index = yield updateIndex();
-    yield sendIndex(ajax, index);
+    yield updateIndex(index);
     console.log('-----finish ignore kui number');
-    yield log('recognize_upload.js finish ignore status kuiNumber: ' + kuiNumber + ' ' + imageFile);
+    yield log('upload.js finish ignore status kuiNumber: ' + kuiNumber + ' ' + imageFile);
     process.exit(4);
   }
   // データ登録
   const kuiHMD = yield buildKuiHitmachineData(kuiObj.objectId, dataType, file.name);
-  registerKHMD(ajax, kuiHMD, kuiNumber);
+  yield registerKHMD(index, kuiHMD, kuiNumber);
   console.log('-----complete');
   process.exit(0);
 }
 
-function* sanwa(ajax, log, File, filePath) {
+function* sanwa(File, filePath) {
   const filename = path.basename(filePath);
   const matches = filename.match(/^(\d+)_(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})_(\d+)_(\d+)\.[a-zA-Z]+$/);
   if (!matches) {
-    exitWithRecognizeError(ajax);
+    exitWithRecognizeError(null);
   }
+  const index = parseInt(matches[1]);
   const year = matches[2];
   const month = matches[3];
   const day = matches[4];
@@ -355,16 +358,19 @@ function* sanwa(ajax, log, File, filePath) {
   const dataType = parseInt(matches[9]);
 
   // 杭データ確認
-  const kuiObj = yield getKuiRecord(ajax, kuiNumber);
+  const kuiObj = yield getKuiRecord(index, kuiNumber);
   // 画像アップロード
   const file = yield uploadImage(File, filePath);
   const createDate = new Date(`${year}/${month}/${day} ${hour}:${minute}:${second}+0900`);
 
   const kuiHMD = yield buildKuiHitmachineData(kuiObj.objectId, dataType, file.name, createDate.valueOf()/1000);
-  registerKHMD(ajax, kuiHMD, kuiNumber);
+  yield registerKHMD(index, kuiHMD, kuiNumber);
   console.log('-----complete');
   process.exit(0);
 }
+
+let ajax;
+let log;
 
 co(function*(){
   console.log('-----start');
@@ -373,10 +379,10 @@ co(function*(){
   // AppPot API呼び出し準備
   const authInfo = new AppPot.AuthInfo();
   const conf = new AppPot.Config(config, macAddr);
-  const ajax = new AppPot.Ajax(authInfo, conf);
+  ajax = new AppPot.Ajax(authInfo, conf);
   const authenticator = new AppPot.LocalAuthenticator(authInfo, conf, ajax);
   const File = AppPot.getFileClass(authInfo, conf, ajax);
-  const log = (msg, level) => {
+  log = (msg, level) => {
     return new Promise( (resolve, reject)=>{
       ajax.post('logs')
         .send({
@@ -390,31 +396,26 @@ co(function*(){
   // ログイン
   yield authenticator.login(account.username, account.password);
 
-  yield log('recognize_upload.js logined ' + imageFile);
+  yield log('upload.js logined ' + imageFile);
 
-  if(isSkip == '1'){
-    const index = yield updateIndex();
-    yield sendIndex(ajax, index);
-    process.exit(5);
-  }
+  const machineType = yield getMachineType(siteId);
 
-  const machineType = yield getMachineType(ajax, siteId);
 
   if (!machineType) {
-    yield earthguide(ajax, log, File, filePath);
+    yield earthguide(File, filePath);
   } 
 
   switch (machineType) {
     case 'kuiHitMachineManager-0001': {
-      yield earthguide(ajax, log, File, filePath);
+      yield earthguide(File, filePath);
       break;
     }
     case 'kuiHitMachineManager-0002': {
-      yield sanwa(ajax, log, File, filePath);
+      yield sanwa(File, filePath);
       break;
     }
     default: {
-      yield log(`unknown machine type ${machineType}`);
+      yield log(`upload.js unknown machine type ${machineType}`);
       process.exit(6);
     }
   }
