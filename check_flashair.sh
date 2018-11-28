@@ -160,6 +160,7 @@ update_file(){
   if [ $? != 0 ];
   then
     rm -f ${GITTAG_FILE}
+    sendlog "failed to update to `cat ${GITTAG_FILE}`"
   fi
 }
 

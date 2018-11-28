@@ -324,6 +324,10 @@ function* earthguide(File, filePath) {
 }
 
 function* sanwa(File, filePath) {
+  const dataTypeMap = {
+    "1": 0,
+    "2": 1
+  };
   const filename = path.basename(filePath);
   const matches = filename.match(/^(\d+)_(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})_(\d+)_(\d+)_(\d+)\.[a-zA-Z]+$/);
   if (!matches) {
@@ -338,7 +342,7 @@ function* sanwa(File, filePath) {
   const second = matches[7];
   const kuiNumber = parseInt(matches[8]);
   const screenType = parseInt(matches[9]);
-  const dataType = parseInt(matches[10]);
+  const dataType = dataTypeMap[matches[10]];
 
   // 杭データ確認
   const kuiObj = yield getKuiRecord(index, kuiNumber);

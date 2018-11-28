@@ -83,7 +83,7 @@ function getMachineType(ajax, siteId) {
     ajax.post('data/SiteMethod')
       .send(searchMachineQuery)
       .end(AppPot.Ajax.end((obj)=>{
-          resolve(obj.SiteMethod.kuiHitMachineManagerId);
+          resolve(obj.SiteMethod[0].kuiHitMachineManagerId);
         }, (err)=>{
           reject(err);
         })
@@ -173,6 +173,7 @@ co(function*(){
 
   let newMachineType = yield getMachineType(ajax, machine.siteId);
   if (!newMachineType) {
+    yield log('machineType not registered');
     newMachineType = 'kuiHitMachineManager-0001';
   }
   if(machineType != newMachineType) {
