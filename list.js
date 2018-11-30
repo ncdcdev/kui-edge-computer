@@ -113,14 +113,33 @@ function earthguide() {
 
 function sanwa() {
   console.log('start...');
-  const rootDir = '/CAPT';
-  getFileList(rootDir)
+  // const rootDir = '/CAPT';
+  const reg = /CAPT(.*)?/;
+  getFileList('/')
   .then(files=>{
+    return Promise.all(files.filter((folder) => {
+      if (folder.directory && folder.name.match(/CAPT(.*)?/)) {
+        return true;
+      }
+    }).sort((a, b) => {
+      let aVal = a.name.match(reg)[1];
+      let bVal = b.name.match(reg)[1];
+      aVal = aVal === undefined ? 0 : parseInt(aVal);
+      bVal = bVal === undefined ? 0 : parseInt(bVal);
+      return aVal - bVal;
+    }).map(file=>{
+      console.log(`get list ${file.name}`);
+      return getFileList(`/${file.name}`);
+    }));
+  })
+  .then(results=>{
     let allFile = [];
-    files.map(file=>{
-      allFile.push({
-        name: file.name,
-        path: file.path
+    results.forEach(files=>{
+      files.forEach(file=>{
+        allFile.push({
+          name: file.name,
+          path: file.path
+        });
       });
     });
     return allFile;
@@ -160,6 +179,7 @@ function sanwa() {
         process.exit(2);
       }
     }
+    return allFile;
   })
   .catch(e=>{
     console.log(e);
