@@ -25,6 +25,28 @@ function getFileList(path){
   });
 }
 
+// function getFilesRecursive(path, result = []) {
+//   let flashair;
+//   flashair = FlashAirLib('flashair.flash', 'AP');
+//   flashair.command.getFileList(path, (err, files)=>{
+//     if(err){
+//       throw new Error('failed list flashair files');
+//     }else{
+//       files.map((file) => {
+//         if (file.directory) {
+//           result = getFilesRecursive(`${path}/${file.name}`, result);
+//         } else {
+//           result.push({
+//             name: file.name,
+//             path: file.path
+//           });
+//         }
+//       });
+//     }
+//   });
+//   return result;
+// }
+
 function earthguide() {
   console.log('start...');
   const rootDir = '/VTIMG';
@@ -91,21 +113,14 @@ function earthguide() {
 
 function sanwa() {
   console.log('start...');
-  const rootDir = '/SANWA';
+  const rootDir = '/CAPT';
   getFileList(rootDir)
   .then(files=>{
-    return Promise.all(files.map(file=>{
-      return getFileList(`${rootDir}/${file.name}`);
-    }));
-  })
-  .then(results=>{
     let allFile = [];
-    results.forEach(files=>{
-      files.forEach(file=>{
-        allFile.push({
-          name: file.name,
-          path: file.path
-        });
+    files.map(file=>{
+      allFile.push({
+        name: file.name,
+        path: file.path
       });
     });
     return allFile;
