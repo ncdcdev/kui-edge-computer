@@ -277,6 +277,7 @@ if [ $result = 1 ];
 then
   echo done | log
   disconnect_flashair
+  sendlog "new file is not found"
   exit_process 0
 elif [ $result = 2 ];
 then
