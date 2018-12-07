@@ -65,6 +65,7 @@ connect_flashair(){
       touch ${FLAGFILEDIR}/flashairfail1;
     fi
     disconnect_flashair
+    sendlog "failed connect to flashair"
     exit_process 1
   fi
   rm ${FLAGFILEDIR}/flashairfail* 2> /dev/null
