@@ -68,6 +68,7 @@ connect_flashair(){
       touch ${FLAGFILEDIR}/flashairfail1;
     fi
     disconnect_flashair
+    sendlog "failed connect to flashair"
     exit_process 1
   fi
   rm ${FLAGFILEDIR}/flashairfail* 2> /dev/null
@@ -284,6 +285,7 @@ if [ $result = 1 ];
 then
   echo done | log
   disconnect_flashair
+  sendlog "new file is not found"
   exit_process 0
 elif [ $result = 2 ];
 then
