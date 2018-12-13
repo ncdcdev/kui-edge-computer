@@ -162,12 +162,19 @@ update_file(){
   then
     rm -f ${GITTAG_FILE}
     sendlog "failed to update to `cat ${GITTAG_FILE}`"
+  else
+    rm -rf node_modules
+    npm install
+    if [ $? != 0 ];
+    then
+      rm -f ${GITTAG_FILE}
+      sendlog "failed to install node packages."
+    fi
   fi
 }
 
 syncdate(){
   sleep 10
-  ntpdate ntp.dnsbalance.ring.gr.jp
   ntpdate ntp.nict.jp
   ntpdate ntp.jst.mfeed.ad.jp
 }
