@@ -45,7 +45,7 @@ exit_process(){
 }
 
 connect_flashair(){
-  nmcli connection up ${NET_WIFI_NAME}
+  timeout 90 nmcli connection up ${NET_WIFI_NAME}
   # nmcli device connect wlan0
   RESULT=$?
 
@@ -68,7 +68,7 @@ connect_flashair(){
       touch ${FLAGFILEDIR}/flashairfail1;
     fi
     disconnect_flashair
-    sendlog "failed connect to flashair"
+    sendlog "failed to connect flashair"
     exit_process 1
   fi
   rm ${FLAGFILEDIR}/flashairfail* 2> /dev/null
@@ -97,7 +97,7 @@ connect_wan3g(){
     done
   fi
 
-  nmcli connection up ${NET_3G_NAME}
+  timeout 90 nmcli connection up ${NET_3G_NAME}
   RESULT=$?
   systemctl start connection-recover.service
 
