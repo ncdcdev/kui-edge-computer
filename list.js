@@ -113,12 +113,11 @@ function earthguide() {
 
 function sanwa() {
   console.log('start...');
-  // const rootDir = '/CAPT';
   const reg = /CAPT(.*)?/;
   getFileList('/')
   .then(files=>{
     return Promise.all(files.filter((folder) => {
-      if (folder.directory && folder.name.match(/CAPT(.*)?/)) {
+      if (folder.attr.directory && folder.name.match(reg)) {
         return true;
       }
     }).sort((a, b) => {
@@ -151,12 +150,11 @@ function sanwa() {
           if(!err){
             index = _index;
           }
-
           console.log('index-no: ' + index);
           const targetFiles = allFile.filter(file=>{
-            return parseInt(file.name.substring(3)) > index;
+            return parseInt(file.name.substr(0, 5)) > index;
           }).sort((a, b)=>{
-            return parseInt(a.name.substring(3)) - parseInt(b.name.substring(3));
+            return parseInt(a.name.substr(0, 5)) - parseInt(b.name.substr(0, 5));
           }).slice(0, fileNum||10);
           if( targetFiles.length == 0 ){
             console.log('finish file notfound...');
