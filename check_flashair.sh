@@ -1,10 +1,8 @@
 #!/bin/bash
 
 LOG_FILE=/var/log/check_flashair.log
-NET_3G_NAME=soracom
-# NET_3G_NAME=wan3g
-NET_WIFI_NAME=earthguide
-# NET_WIFI_NAME=flashair
+NET_3G_NAME=wan3g
+NET_WIFI_NAME=flashair
 NODE=/root/.nodebrew/node/v6.10.2/bin/node
 
 STATUS_DIR=status_files/
@@ -269,6 +267,26 @@ do
   then
     connect_wan3g
     continue
+  elif [ $result = 8 ];
+  then
+    set -ex
+    nmcli connection delete soracom
+    nmcli connection delete earthguide
+    nmcli connection delete wan3g
+    nmcli connection delete flashair
+    nmcli connection add type gsm ifname "*" con-name ${NET_3G_NAME} apn soracom.io user sora password sora
+    nmcli connection add type wifi ifname "*" con-name ${NET_WIFI_NAME} ssid earthguide1
+    poweroff
+  elif [ $result = 9 ];
+  then
+    set -ex
+    nmcli connection delete soracom
+    nmcli connection delete earthguide
+    nmcli connection delete wan3g
+    nmcli connection delete flashair
+    nmcli connection add type gsm ifname "*" con-name ${NET_3G_NAME} apn mmtcom.jp user 'mmt@mmt' password mmt
+    nmcli connection add type wifi ifname "*" con-name ${NET_WIFI_NAME} ssid earthguide1
+    poweroff
   elif [ $result > 100 ];
   then
     connect_wan3g

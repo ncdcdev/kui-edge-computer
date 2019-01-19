@@ -155,6 +155,14 @@ co(function*(){
     machine.status = 'halted';
     yield updateMachineStatus(ajax, machine);
     process.exit(3);
+  }else if(machine.status == 'sim-to-soracom'){
+    machine.status = 'halted';
+    yield updateMachineStatus(ajax, machine);
+    process.exit(8);
+  }else if(machine.status == 'sim-to-marubeni'){
+    machine.status = 'halted';
+    yield updateMachineStatus(ajax, machine);
+    process.exit(9);
   }else if(machine.status != 'normal'){
     machine.status = 'normal';
     doUpdate = true;
