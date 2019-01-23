@@ -298,8 +298,9 @@ function* earthguide(File, filePath) {
     process.exit(5);
   }
 
+  let result;
   try {
-    const result = yield recognizeAllArea(filePath);
+    result = yield recognizeAllArea(filePath);
   } catch(e) {
     yield exitWithRecognizeError(index);
   }
