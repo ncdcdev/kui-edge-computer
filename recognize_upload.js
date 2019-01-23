@@ -88,6 +88,7 @@ function recognize(buffer){
       })
       .then(result=>{
         const regexp = /(\d+) (\d+)/;
+        yield log('confidence: ' + result.confidence, 'MONITOR');
         const matches = result.text.match(regexp);
         resolve(matches[1] + '-' + matches[2]);
       })
@@ -122,7 +123,7 @@ function getStatus(imgPath, area){
   });
 }
 
-function all(path){
+function recognizeAllArea(path){
   return Promise.all([
     getNumberArea(path).then(recognize),
     getStatus(path, geometries.status1),
@@ -293,13 +294,18 @@ function* earthguide(File, filePath) {
     yield updateIndex(index);
     process.exit(5);
   }
-  const result = yield all(filePath);
+
+  try {
+    const result = yield recognizeAllArea(filePath);
+  } catch(e) {
+    yield exitWithRecognizeError(index);
+  }
   console.log('--------');
   console.log(result[0] + ' ' + result[1] + ' ' + result[2] + ' ' + result[3]);
   console.log('--------');
   const matches = result[0].match(/(\d{3})-(\d{3})/);
   if(!matches){
-    exitWithRecognizeError(index);
+    yield exitWithRecognizeError(index);
   }
   const kuiNumber = parseInt( matches[2] );
 
@@ -331,7 +337,7 @@ function* sanwa(File, filePath) {
   const filename = path.basename(filePath);
   const matches = filename.match(/^(\d+)_(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})_(\d+)_(\d+)_(\d+)\.[a-zA-Z]+$/);
   if (!matches) {
-    exitWithRecognizeError(null);
+    yield exitWithRecognizeError(null);
   }
   const index = parseInt(matches[1]);
   const year = matches[2];
