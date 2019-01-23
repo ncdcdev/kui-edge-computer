@@ -88,10 +88,10 @@ function recognize(buffer){
         //console.log(p);
       })
       .then(result=>{
-        const regexp = /(\d+) (\d+)/;
         text = result.text;
         return sendLog('confidence: ' + result.confidence, 'MONITOR');
       }).then(() => {
+        const regexp = /(\d+) (\d+)/;
         const matches = text.match(regexp);
         resolve(matches[1] + '-' + matches[2]);
       })
