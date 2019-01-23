@@ -89,6 +89,9 @@ function recognize(buffer){
       })
       .then(result=>{
         text = result.text;
+        if (result.conficence < 20) {
+          throw new Error('conficence too low: ' + result.conficence);
+        }
         return sendLog('confidence: ' + result.confidence, 'MONITOR');
       }).then(() => {
         const regexp = /(\d+) (\d+)/;
