@@ -74,6 +74,7 @@ function getNumberArea(imgPath){
 }
 
 function recognize(buffer){
+  let text;
   return new Promise((resolve, reject)=>{
     console.log('recognize number');
     t = Tesseract.create({
@@ -88,8 +89,10 @@ function recognize(buffer){
       })
       .then(result=>{
         const regexp = /(\d+) (\d+)/;
-        yield log('confidence: ' + result.confidence, 'MONITOR');
-        const matches = result.text.match(regexp);
+        text = result.text;
+        return sendLog('confidence: ' + result.confidence, 'MONITOR');
+      }).then(() => {
+        const matches = text.match(regexp);
         resolve(matches[1] + '-' + matches[2]);
       })
       .catch(e=>{
@@ -259,7 +262,7 @@ function* exitWithRecognizeError(index) {
   if (index !== undefined && index !== null && index !== false) {
     yield updateIndex(index);
   }
-  yield log('upload.js finish recognize error' + imageFile, 'ERROR');
+  yield sendLog('upload.js finish recognize error' + imageFile, 'ERROR');
   console.log('-----finish recognize error');
   process.exit(1);
 }
@@ -268,7 +271,7 @@ function* getKuiRecord(index, kuiNumber) {
   const kuiList = yield searchKui(kuiNumber);
   if(kuiList.length == 0){
     yield updateIndex(index);
-    yield log('upload.js finish kui not found kuiNumber: ' + kuiNumber + ' ' + imageFile, 'ERROR');
+    yield sendLog('upload.js finish kui not found kuiNumber: ' + kuiNumber + ' ' + imageFile, 'ERROR');
     console.log('-----finish kui not found');
     process.exit(3);
   }
@@ -284,7 +287,7 @@ function uploadImage(File, filePath) {
 function* registerKHMD(index, data, kuiNumber) {
   yield insertKuiHitMachineData(data);
   yield updateIndex(index);
-  yield log('upload.js complete kuiNumber: ' + kuiNumber + ' ' + imageFile);
+  yield sendLog('upload.js complete kuiNumber: ' + kuiNumber + ' ' + imageFile);
 }
 
 function* earthguide(File, filePath) {
@@ -319,7 +322,7 @@ function* earthguide(File, filePath) {
   if (!Number.isInteger(dataType)) {
     yield updateIndex(index);
     console.log('-----finish ignore kui number');
-    yield log('upload.js finish ignore status kuiNumber: ' + kuiNumber + ' ' + imageFile);
+    yield sendLog('upload.js finish ignore status kuiNumber: ' + kuiNumber + ' ' + imageFile);
     process.exit(4);
   }
   // データ登録
@@ -363,7 +366,7 @@ function* sanwa(File, filePath) {
 }
 
 let ajax;
-let log;
+let sendLog;
 
 co(function*(){
   console.log('-----start');
@@ -375,7 +378,7 @@ co(function*(){
   ajax = new AppPot.Ajax(authInfo, conf);
   const authenticator = new AppPot.LocalAuthenticator(authInfo, conf, ajax);
   const File = AppPot.getFileClass(authInfo, conf, ajax);
-  log = (msg, level) => {
+  sendLog = (msg, level) => {
     return new Promise( (resolve, reject)=>{
       ajax.post('logs')
         .send({
@@ -389,7 +392,7 @@ co(function*(){
   // ログイン
   yield authenticator.login(account.username, account.password);
 
-  yield log('upload.js logined ' + imageFile);
+  yield sendLog('upload.js logined ' + imageFile);
 
   switch (machineType) {
     case 'kuiHitMachineManager-0001': {
@@ -401,7 +404,7 @@ co(function*(){
       break;
     }
     default: {
-      yield log(`upload.js unknown machine type ${machineType}`);
+      yield sendLog(`upload.js unknown machine type ${machineType}`);
       process.exit(6);
     }
   }
