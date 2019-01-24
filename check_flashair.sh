@@ -11,6 +11,7 @@ SITE_ID_FILE=${STATUS_DIR}siteid.txt
 SSID_FILE=${STATUS_DIR}ssid.txt
 PSWD_FILE=${STATUS_DIR}pswd.txt
 GITTAG_FILE=${STATUS_DIR}git-tag.txt
+MACHINETYPE_FILE=${STATUS_DIR}machine_type.txt
 
 IS_SKIP=0
 
@@ -158,12 +159,20 @@ update_file(){
   if [ $? != 0 ];
   then
     rm -f ${GITTAG_FILE}
+    sendlog "failed to update to `cat ${GITTAG_FILE}`"
+  else
+    rm -rf node_modules
+    npm install
+    if [ $? != 0 ];
+    then
+      rm -f ${GITTAG_FILE}
+      sendlog "failed to install node packages."
+    fi
   fi
 }
 
 syncdate(){
   sleep 10
-  ntpdate ntp.dnsbalance.ring.gr.jp
   ntpdate ntp.nict.jp
   ntpdate ntp.jst.mfeed.ad.jp
 }
@@ -212,6 +221,9 @@ fi
 if [ ! -e ${GITTAG_FILE} ]; then
   echo 0 > ${GITTAG_FILE}
 fi
+if [ ! -e ${MACHINETYPE_FILE} ]; then
+  echo 0 > ${MACHINETYPE_FILE}
+fi
 
 for CNT in $(seq 1 10);
 do
@@ -219,7 +231,7 @@ do
   then
     reboot
   fi
-  timeout 30 ${NODE} ./update_machine_status.js ${INDEX_FILE} "${MACADDR}" ${SITE_ID_FILE} "${SSID_FILE}" "${PSWD_FILE}" "${GITTAG_FILE}" >> ${LOG_FILE}
+  timeout 30 ${NODE} ./update_machine_status.js ${INDEX_FILE} "${MACADDR}" ${SITE_ID_FILE} "${SSID_FILE}" "${PSWD_FILE}" "${GITTAG_FILE}" "${MACHINETYPE_FILE}" >> ${LOG_FILE}
 
   result=$?
   if [ $result = 0 ];
@@ -255,6 +267,26 @@ do
   then
     connect_wan3g
     continue
+  elif [ $result = 8 ];
+  then
+    set -ex
+    nmcli connection delete soracom
+    nmcli connection delete earthguide
+    nmcli connection delete wan3g
+    nmcli connection delete flashair
+    nmcli connection add type gsm ifname "*" con-name ${NET_3G_NAME} apn soracom.io user sora password sora
+    nmcli connection add type wifi ifname "*" con-name ${NET_WIFI_NAME} ssid earthguide1
+    poweroff
+  elif [ $result = 9 ];
+  then
+    set -ex
+    nmcli connection delete soracom
+    nmcli connection delete earthguide
+    nmcli connection delete wan3g
+    nmcli connection delete flashair
+    nmcli connection add type gsm ifname "*" con-name ${NET_3G_NAME} apn mmtcom.jp user 'mmt@mmt' password mmt
+    nmcli connection add type wifi ifname "*" con-name ${NET_WIFI_NAME} ssid earthguide1
+    poweroff
   elif [ $result > 100 ];
   then
     connect_wan3g
@@ -269,7 +301,7 @@ listfile=$(mktemp "/tmp/${0##*/}.tmp.XXXXXX")
 connect_flashair
 sleep 5s
 cat /proc/net/wireless | log
-timeout 60 ${NODE} ./list.js ${INDEX_FILE} ${listfile} 10 ${IS_SKIP} >> ${LOG_FILE}
+timeout 60 ${NODE} ./list.js ${INDEX_FILE} ${listfile} 10 ${IS_SKIP} "${MACHINETYPE_FILE}" >> ${LOG_FILE}
 result=$?
 listedfilecount=`cat ${listfile} | wc -l`
 echo "list file"
@@ -325,7 +357,7 @@ do
     then
       reboot
     fi
-    ${NODE} ./recognize_upload.js ${INDEX_FILE} ${file} "${MACADDR}" ${SITE_ID_FILE} ${IS_SKIP} >> ${LOG_FILE}
+    ${NODE} ./recognize_upload.js ${INDEX_FILE} ${file} "${MACADDR}" ${SITE_ID_FILE} ${IS_SKIP} "${MACHINETYPE_FILE}" >> ${LOG_FILE}
     result=$?
     if [ $result = 0 ];
     then
@@ -351,6 +383,10 @@ do
     elif [ $result = 5 ];
     then
       echo "[Skipped] until ${file}" | log
+      exit_process 0
+    elif [ $result = 6 ];
+    then
+      echo "[Failed] Unknown machine type" | log
       exit_process 0
     else
       disconnect_wan3g

@@ -10,6 +10,7 @@ const siteIdFile = process.argv[4];
 const ssidFile = process.argv[5];
 const pswdFile = process.argv[6];
 const gittagFile = process.argv[7];
+const machineTypeFile = process.argv[8];
 
 /** exit code
  * exit 0 => normal
@@ -65,6 +66,31 @@ function updateMachineStatus(ajax, machine) {
   });
 }
 
+function getMachineType(ajax, siteId) {
+  const searchMachineQuery = {
+    'from': {
+      'phyName' :'SiteMethod',
+      'alias' :'SiteMethod'
+    },
+    'where': {
+      'expression': {
+        'source': '#SiteMethod.siteId = ?',
+        'params': [siteId]
+      }
+    }
+  };
+  return new Promise((resolve, reject)=>{
+    ajax.post('data/SiteMethod')
+      .send(searchMachineQuery)
+      .end(AppPot.Ajax.end((obj)=>{
+          resolve(obj.SiteMethod[0].kuiHitMachineManagerId);
+        }, (err)=>{
+          reject(err);
+        })
+      );
+  });
+}
+
 co(function*(){
   // AppPot API呼び出し準備
   const authInfo = new AppPot.AuthInfo();
@@ -93,6 +119,10 @@ co(function*(){
   machine = yield getMachine(ajax);
 
   const siteId = fs.readFileSync(siteIdFile, {
+    encoding: 'utf8'
+  });
+
+  const machineType = fs.readFileSync(machineTypeFile, {
     encoding: 'utf8'
   });
 
@@ -125,6 +155,14 @@ co(function*(){
     machine.status = 'halted';
     yield updateMachineStatus(ajax, machine);
     process.exit(3);
+  }else if(machine.status == 'sim-to-soracom'){
+    machine.status = 'halted';
+    yield updateMachineStatus(ajax, machine);
+    process.exit(8);
+  }else if(machine.status == 'sim-to-marubeni'){
+    machine.status = 'halted';
+    yield updateMachineStatus(ajax, machine);
+    process.exit(9);
   }else if(machine.status != 'normal'){
     machine.status = 'normal';
     doUpdate = true;
@@ -141,6 +179,16 @@ co(function*(){
     yield log('overrided siteId to: ' + machine.siteId);
   }
 
+  let newMachineType = yield getMachineType(ajax, machine.siteId);
+  if (!newMachineType) {
+    yield log('machineType not registered');
+    newMachineType = 'kuiHitMachineManager-0001';
+  }
+  if(machineType != newMachineType) {
+    fs.writeFileSync(machineTypeFile, newMachineType);
+    yield log('overrided machineType to: ' + newMachineType);
+  }
+  
   if(machine.overrideIndex == '0') {
     const currentIndex = fs.readFileSync(siteIdFile, {
       encoding: 'utf8'

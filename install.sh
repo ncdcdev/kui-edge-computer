@@ -34,7 +34,7 @@ nodebrew use v6.10.2
 git clone https://github.com/NCDCHub/kui-edge-computer.git /home/atmark/KuiEdgeMachine
 cd /home/atmark/KuiEdgeMachine
 npm install
-nmcli connection add type gsm ifname "*" con-name wan3g apn mmtcom.jp user 'mmt@mmt' password mmt
+nmcli connection add type gsm ifname "*" con-name wan3g apn soracom.io user sora password sora
 nmcli connection add type wifi ifname "*" con-name flashair ssid earthguide1
 cat << EOT > account.js
 module.exports = {
