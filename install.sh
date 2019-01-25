@@ -2,7 +2,8 @@
 
 USERNAME="x"
 PASSWORD="x"
-while getopts u:p: OPT
+CARRIER="soracom"
+while getopts u:p:c: OPT
 do
   case $OPT in
     u)
@@ -11,6 +12,8 @@ do
     p)
       PASSWORD="$OPTARG"
       ;;
+    c)
+      CARRIER="$OPTARG"
   esac
 done
 
@@ -34,7 +37,19 @@ nodebrew use v6.10.2
 git clone https://github.com/NCDCHub/kui-edge-computer.git /home/atmark/KuiEdgeMachine
 cd /home/atmark/KuiEdgeMachine
 npm install
-nmcli connection add type gsm ifname "*" con-name wan3g apn soracom.io user sora password sora
+
+case $CARRIER in
+  soracom)
+    nmcli connection add type gsm ifname "*" con-name wan3g apn soracom.io user sora password sora
+    ;;
+  marubeni)
+    nmcli connection add type gsm ifname "*" con-name wan3g apn mmtcom.jp user 'mmt@mmt' password mmt
+    ;;
+  *)
+    nmcli connection add type gsm ifname "*" con-name wan3g apn soracom.io user sora password sora
+    ;;
+esac
+
 nmcli connection add type wifi ifname "*" con-name flashair ssid earthguide1
 cat << EOT > account.js
 module.exports = {
@@ -43,4 +58,4 @@ module.exports = {
 }
 EOT
 cp ./check_flashair /etc/cron.d/
-reboot
+poweroff
