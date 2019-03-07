@@ -25,11 +25,23 @@ const machineType = fs.readFileSync(machineTypeFile, {
 
 
 const geometries = {
-  kuiNumber: {
+  type1KuiNumber: {
     width: 100,
     height: 16,
     x: 62,
     y: 10
+  },
+  type2KuiNumber: {
+    width: 100,
+    height: 16,
+    x: 62,
+    y: 12
+  },
+  sheetType: {
+    width: 100,
+    height: 11,
+    x: 42,
+    y: 464
   },
   status1: {
     width: 51,
@@ -52,24 +64,27 @@ const geometries = {
 };
 
 function getNumberArea(imgPath){
-  return new Promise((resolve, reject)=>{
-    const kuiArea = geometries.kuiNumber;
-    gm(imgPath).crop(
-      kuiArea.width,
-      kuiArea.height,
-      kuiArea.x,
-      kuiArea.y
-    )
-    .fill('#fff')
-    .drawRectangle(45, 0, 54, 16)
-    .toBuffer('JPG', (err, buffer) =>{
-      if(err){
-        console.log(err);
-        reject(err);
-      }else{
-        resolve(buffer);
-      }
-    })
+  return getStatus(imgPath, geometries.sheetType)
+    .then((isNew) => {
+      const area = isNew ? geometries.type2KuiNumber : geometries.type1KuiNumber;
+      return new Promise((resolve, reject) => {
+        gm(imgPath).crop(
+          area.width,
+          area.height,
+          area.x,
+          area.y
+        )
+        .fill('#fff')
+        .drawRectangle(45, 0, 54, 16)
+        .toBuffer('JPG', (err, buffer) =>{
+          if(err){
+            console.log(err);
+            reject(err);
+          }else{
+            resolve(buffer);
+          }
+        })
+      });
   });
 }
 
