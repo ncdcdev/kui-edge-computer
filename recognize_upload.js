@@ -38,10 +38,10 @@ const geometries = {
     y: 12
   },
   sheetType: {
-    width: 100,
-    height: 11,
-    x: 42,
-    y: 464
+    width: 42,
+    height: 1,
+    x: 16,
+    y: 28
   },
   status1: {
     width: 51,
@@ -64,7 +64,7 @@ const geometries = {
 };
 
 function getNumberArea(imgPath){
-  return getStatus(imgPath, geometries.sheetType)
+  return getSheetType(imgPath, geometries.sheetType)
   .then((isNew) => {
     const area = isNew ? geometries.type2KuiNumber : geometries.type1KuiNumber;
     return sendLog('upload.js sheetType ' + (isNew ? 1 : 0))
@@ -120,6 +120,30 @@ function recognize(buffer){
         console.log(e);
         reject(e);
       })
+  });
+}
+
+function getSheetType(imgPath, area){
+  return new Promise((resolve, reject)=>{
+    console.log('get status');
+    gm(imgPath)
+    .setFormat('pgm')
+    .crop(
+      area.width,
+      area.height,
+      area.x,
+      area.y
+    )
+    .resize(1, 1, "!")
+    .toBuffer((err, buffer) =>{
+      if(err){
+        console.log(err);
+        reject(err);
+      }else{
+        const brightness = buffer.readUInt8(buffer.length - 1);
+        resolve( brightness < 128 );
+      }
+    })
   });
 }
 
