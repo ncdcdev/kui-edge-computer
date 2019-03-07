@@ -65,9 +65,9 @@ const geometries = {
 
 function getNumberArea(imgPath){
   return getSheetType(imgPath, geometries.sheetType)
-  .then((isNew) => {
-    const area = isNew ? geometries.type2KuiNumber : geometries.type1KuiNumber;
-    return sendLog('upload.js sheetType ' + (isNew ? 1 : 0))
+  .then((brightness) => {
+    const area = brightness < 300 ? geometries.type2KuiNumber : geometries.type1KuiNumber;
+    return sendLog('upload.js sheetType ' + brightness)
     .then(() => {
       return new Promise((resolve, reject) => {
         gm(imgPath).crop(
@@ -141,7 +141,7 @@ function getSheetType(imgPath, area){
         reject(err);
       }else{
         const brightness = buffer.readUInt8(buffer.length - 1);
-        resolve( brightness < 128 );
+        resolve( brightness );
       }
     })
   });
