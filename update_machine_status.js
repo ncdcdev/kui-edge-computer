@@ -11,7 +11,7 @@ const ssidFile = process.argv[5];
 const pswdFile = process.argv[6];
 const gittagFile = process.argv[7];
 const machineTypeFile = process.argv[8];
-const methodFile = process.arg[9];
+const methodFile = process.argv[9];
 
 /** exit code
  * exit 0 => normal
@@ -78,7 +78,8 @@ function getTypeAndMethod(ajax, siteId) {
       'entityAlias': 'Method',
       'expression': {
         'source': '#SiteMethod.methodId = #Method.objectId'
-      }
+      },
+      'type': 'LEFT OUTER JOIN'
     },
     'where': {
       'expression': {

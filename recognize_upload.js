@@ -237,6 +237,7 @@ function getDataType(recognizedData) {
       }else if(recognizedData[2]){
         return 1;
       }
+      return false;
     default:
       if( recognizedData[1] && !recognizedData[2] && !recognizedData[3] ){
         return 0;
