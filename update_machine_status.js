@@ -11,6 +11,7 @@ const ssidFile = process.argv[5];
 const pswdFile = process.argv[6];
 const gittagFile = process.argv[7];
 const machineTypeFile = process.argv[8];
+const methodFile = process.arg[9];
 
 /** exit code
  * exit 0 => normal
@@ -66,11 +67,18 @@ function updateMachineStatus(ajax, machine) {
   });
 }
 
-function getMachineType(ajax, siteId) {
+function getTypeAndMethod(ajax, siteId) {
   const searchMachineQuery = {
     'from': {
       'phyName' :'SiteMethod',
       'alias' :'SiteMethod'
+    },
+    'join': {
+      'entity': 'Method',
+      'entityAlias': 'Method',
+      'expression': {
+        'source': '#SiteMethod.methodId = #Method.objectId'
+      }
     },
     'where': {
       'expression': {
@@ -83,7 +91,10 @@ function getMachineType(ajax, siteId) {
     ajax.post('data/SiteMethod')
       .send(searchMachineQuery)
       .end(AppPot.Ajax.end((obj)=>{
-          resolve(obj.SiteMethod[0].kuiHitMachineManagerId);
+          resolve({
+            machineType: obj.SiteMethod[0].kuiHitMachineManagerId,
+            method: obj.Method[0].objectId 
+          });
         }, (err)=>{
           reject(err);
         })
@@ -123,6 +134,10 @@ co(function*(){
   });
 
   const machineType = fs.readFileSync(machineTypeFile, {
+    encoding: 'utf8'
+  });
+
+  const method = fs.readFileSync(methodFile, {
     encoding: 'utf8'
   });
 
@@ -179,7 +194,10 @@ co(function*(){
     yield log('overrided siteId to: ' + machine.siteId);
   }
 
-  let newMachineType = yield getMachineType(ajax, machine.siteId);
+  let {
+    machineType: newMachineType,
+    method: newMethod
+  } = yield getTypeAndMethod(ajax, machine.siteId);
   if (!newMachineType) {
     yield log('machineType not registered');
     newMachineType = 'kuiHitMachineManager-0001';
@@ -187,6 +205,10 @@ co(function*(){
   if(machineType != newMachineType) {
     fs.writeFileSync(machineTypeFile, newMachineType);
     yield log('overrided machineType to: ' + newMachineType);
+  }
+  if(method != newMethod) {
+    fs.writeFileSync(methodFile, newMethod);
+    yield log('overrided method to: ' + newMethod);
   }
   
   if(machine.overrideIndex == '0') {

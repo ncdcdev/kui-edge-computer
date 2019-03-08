@@ -14,12 +14,17 @@ const macAddr = process.argv[4];
 const siteIdFile = process.argv[5];
 const isSkip = process.argv[6];
 const machineTypeFile = process.argv[7];
+const methodFile = process.argv[8];
 
 const siteId = fs.readFileSync(siteIdFile, {
   encoding: 'utf8'
 });
 
 const machineType = fs.readFileSync(machineTypeFile, {
+  encoding: 'utf8'
+});
+
+const method = fs.readFileSync(methodFile, {
   encoding: 'utf8'
 });
 
@@ -223,12 +228,23 @@ function searchKui(kuiNumber){
 }
 
 function getDataType(recognizedData) {
-  if( recognizedData[1] && !recognizedData[2] && !recognizedData[3] ){
-    return 0;
-  }else if(recognizedData[3]){
-    return 1;
+  switch(method) {
+    case 'method-0003':
+    case 'method-0004':
+    case 'method-0005':
+      if( recognizedData[1] && !recognizedData[2] && !recognizedData[3] ){
+        return 0;
+      }else if(recognizedData[2]){
+        return 1;
+      }
+    default:
+      if( recognizedData[1] && !recognizedData[2] && !recognizedData[3] ){
+        return 0;
+      }else if(recognizedData[3]){
+        return 1;
+      }
+      return false;
   }
-  return false;
 }
 
 function buildKuiHitmachineData(kuiId, dataType, fileName, screenType, dateTime){

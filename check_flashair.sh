@@ -12,6 +12,7 @@ SSID_FILE=${STATUS_DIR}ssid.txt
 PSWD_FILE=${STATUS_DIR}pswd.txt
 GITTAG_FILE=${STATUS_DIR}git-tag.txt
 MACHINETYPE_FILE=${STATUS_DIR}machine_type.txt
+METHOD_FILE=${STATUS_DIR}method.txt
 
 IS_SKIP=0
 
@@ -224,6 +225,9 @@ fi
 if [ ! -e ${MACHINETYPE_FILE} ]; then
   echo 0 > ${MACHINETYPE_FILE}
 fi
+if [ ! -e ${METHOD_FILE} ]; then
+  echo 0 > ${METHOD_FILE}
+fi
 
 for CNT in $(seq 1 10);
 do
@@ -231,7 +235,7 @@ do
   then
     reboot
   fi
-  timeout 30 ${NODE} ./update_machine_status.js ${INDEX_FILE} "${MACADDR}" ${SITE_ID_FILE} "${SSID_FILE}" "${PSWD_FILE}" "${GITTAG_FILE}" "${MACHINETYPE_FILE}" >> ${LOG_FILE}
+  timeout 30 ${NODE} ./update_machine_status.js ${INDEX_FILE} "${MACADDR}" ${SITE_ID_FILE} "${SSID_FILE}" "${PSWD_FILE}" "${GITTAG_FILE}" "${MACHINETYPE_FILE}" "${METHOD_FILE}" >> ${LOG_FILE}
 
   result=$?
   if [ $result = 0 ];
@@ -357,7 +361,7 @@ do
     then
       reboot
     fi
-    ${NODE} ./recognize_upload.js ${INDEX_FILE} ${file} "${MACADDR}" ${SITE_ID_FILE} ${IS_SKIP} "${MACHINETYPE_FILE}" >> ${LOG_FILE}
+    ${NODE} ./recognize_upload.js ${INDEX_FILE} ${file} "${MACADDR}" ${SITE_ID_FILE} ${IS_SKIP} "${MACHINETYPE_FILE}" "${METHOD_FILE}" >> ${LOG_FILE}
     result=$?
     if [ $result = 0 ];
     then
