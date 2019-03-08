@@ -73,14 +73,14 @@ function getTypeAndMethod(ajax, siteId) {
       'phyName' :'SiteMethod',
       'alias' :'SiteMethod'
     },
-    'join': {
+    'join': [{
       'entity': 'Method',
       'entityAlias': 'Method',
       'expression': {
         'source': '#SiteMethod.methodId = #Method.objectId'
       },
       'type': 'LEFT OUTER JOIN'
-    },
+    }],
     'where': {
       'expression': {
         'source': '#SiteMethod.siteId = ?',
