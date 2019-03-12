@@ -14,6 +14,7 @@ const macAddr = process.argv[4];
 const siteIdFile = process.argv[5];
 const isSkip = process.argv[6];
 const machineTypeFile = process.argv[7];
+const methodFile = process.argv[8];
 
 const siteId = fs.readFileSync(siteIdFile, {
   encoding: 'utf8'
@@ -23,13 +24,29 @@ const machineType = fs.readFileSync(machineTypeFile, {
   encoding: 'utf8'
 });
 
+const method = fs.readFileSync(methodFile, {
+  encoding: 'utf8'
+});
+
 
 const geometries = {
-  kuiNumber: {
+  type1KuiNumber: {
     width: 100,
     height: 16,
     x: 62,
     y: 10
+  },
+  type2KuiNumber: {
+    width: 100,
+    height: 16,
+    x: 62,
+    y: 12
+  },
+  sheetType: {
+    width: 42,
+    height: 1,
+    x: 16,
+    y: 28
   },
   status1: {
     width: 51,
@@ -52,24 +69,30 @@ const geometries = {
 };
 
 function getNumberArea(imgPath){
-  return new Promise((resolve, reject)=>{
-    const kuiArea = geometries.kuiNumber;
-    gm(imgPath).crop(
-      kuiArea.width,
-      kuiArea.height,
-      kuiArea.x,
-      kuiArea.y
-    )
-    .fill('#fff')
-    .drawRectangle(45, 0, 54, 16)
-    .toBuffer('JPG', (err, buffer) =>{
-      if(err){
-        console.log(err);
-        reject(err);
-      }else{
-        resolve(buffer);
-      }
-    })
+  return getSheetType(imgPath, geometries.sheetType)
+  .then((brightness) => {
+    const area = brightness < 300 ? geometries.type2KuiNumber : geometries.type1KuiNumber;
+    return sendLog('upload.js sheetType ' + brightness)
+    .then(() => {
+      return new Promise((resolve, reject) => {
+        gm(imgPath).crop(
+          area.width,
+          area.height,
+          area.x,
+          area.y
+        )
+        .fill('#fff')
+        .drawRectangle(45, 0, 54, 16)
+        .toBuffer('JPG', (err, buffer) =>{
+          if(err){
+            console.log(err);
+            reject(err);
+          }else{
+            resolve(buffer);
+          }
+        });
+      });
+    });
   });
 }
 
@@ -102,6 +125,30 @@ function recognize(buffer){
         console.log(e);
         reject(e);
       })
+  });
+}
+
+function getSheetType(imgPath, area){
+  return new Promise((resolve, reject)=>{
+    console.log('get status');
+    gm(imgPath)
+    .setFormat('pgm')
+    .crop(
+      area.width,
+      area.height,
+      area.x,
+      area.y
+    )
+    .resize(1, 1, "!")
+    .toBuffer((err, buffer) =>{
+      if(err){
+        console.log(err);
+        reject(err);
+      }else{
+        const brightness = buffer.readUInt8(buffer.length - 1);
+        resolve( brightness );
+      }
+    })
   });
 }
 
@@ -181,12 +228,24 @@ function searchKui(kuiNumber){
 }
 
 function getDataType(recognizedData) {
-  if( recognizedData[1] && !recognizedData[2] && !recognizedData[3] ){
-    return 0;
-  }else if(recognizedData[3]){
-    return 1;
+  switch(method) {
+    case 'method-0003':
+    case 'method-0004':
+    case 'method-0005':
+      if( recognizedData[1] && !recognizedData[2] && !recognizedData[3] ){
+        return 0;
+      }else if(recognizedData[2]){
+        return 1;
+      }
+      return false;
+    default:
+      if( recognizedData[1] && !recognizedData[2] && !recognizedData[3] ){
+        return 0;
+      }else if(recognizedData[3]){
+        return 1;
+      }
+      return false;
   }
-  return false;
 }
 
 function buildKuiHitmachineData(kuiId, dataType, fileName, screenType, dateTime){
