@@ -1,5 +1,5 @@
 module.exports = {
-  url: "http://trial.apppot.net/apppot/",
+  url: "https://prodv2.tpilerecorder.jp/apppot/",
   appId: "taisei_kui_staging",
   appKey: "82ec0045f000469c84b82e062965c73d",
   appVersion: "1.0.0",
