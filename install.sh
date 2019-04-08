@@ -6,7 +6,8 @@ USERNAME="x"
 PASSWORD="x"
 CARRIER="soracom"
 NOOFF="x"
-while getopts u:p:c:o OPT
+FROMNOW="x"
+while getopts u:p:c:ob OPT
 do
   case $OPT in
     u)
@@ -21,15 +22,30 @@ do
     o)
       NOOFF="1"
       ;;
+    b)
+      FROMNOW="1"
+      ;;
   esac
 done
 
-if [ "${USERNAME}" = "x" -o "${PASSWORD}" = "x" ];
+if [ "${FROMNOW}" = "x" -a "${USERNAME}" = "x" -o "${PASSWORD}" = "x" ];
 then
   echo "Not enough arguments"
-  echo "Please specify username and password"
+  echo "Please specify username and password or use -b option"
   echo "Usage: $0 -u USERNAME -p PASSWORD"
+  echo "Usage: $0 -b"
   exit 0
+fi
+
+if [ "${FROMNOW}" = "1"];
+then
+  if [ ! -e "${PROJ_DIR}/account.js" ];
+  then
+    echo "${PROJ_DIR}/account.js is not exists"
+    echo "Please specify username and password"
+    echo "Usage: $0 -u USERNAME -p PASSWORD"
+    exit 1
+  fi
 fi
 
 set -ex
@@ -49,6 +65,10 @@ echo 'export PATH=$HOME/.nodebrew/current/bin:$PATH' >> ~/.bashrc
 nodebrew install-binary v6.10.2
 nodebrew use v6.10.2
 
+if [ "${FROMNOW}" = "1" ];
+then
+  mv "${PROJ_DIR}/account.js" ~/account.js
+fi
 if [ -d ${PROJ_DIR} ];
 then
   rm -rf ${PROJ_DIR}
@@ -81,12 +101,17 @@ case $CARRIER in
 esac
 
 nmcli connection add type wifi ifname "*" con-name flashair ssid earthguide1
+
+if [ "${FROMNOW}" = "x" ];then
 cat << EOT > account.js
 module.exports = {
   username: "${USERNAME}",
   password: "${PASSWORD}"
 }
 EOT
+else
+  mv ~/account.js "${PROJ_DIR}/account.js"
+fi
 cp ./check_flashair /etc/cron.d/
 if [ "${NOOFF}" = "x" ];
 then
