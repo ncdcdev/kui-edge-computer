@@ -28,7 +28,7 @@ do
   esac
 done
 
-if [ "${FROMNOW}" = "x" -a "${USERNAME}" = "x" -o "${PASSWORD}" = "x" ];
+if [ "${FROMNOW}" = "x" -a \( "${USERNAME}" = "x" -o "${PASSWORD}" = "x" \) ];
 then
   echo "Not enough arguments"
   echo "Please specify username and password or use -b option"
