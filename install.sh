@@ -35,7 +35,9 @@ fi
 set -ex
 apt update
 apt install -y git vim graphicsmagick
-cat ~/.bashrc | grep -v nodebrew > ~/.bashrc
+cat ~/.bashrc | grep -v nodebrew > ~/.bashrc.new
+mv ~/.bashrc{,.old}
+mv ~/.bashrc{.new,}
 if [ -d .nodebrew ];
 then
   rm -rf .nodebrew
