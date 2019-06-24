@@ -379,18 +379,21 @@ function* earthguide(File, filePath) {
   const kuiObj = yield getKuiRecord(index, kuiNumber);
 
   // 画像アップロード
-  const file = yield uploadImage(File, filePath);
+  // const file = yield uploadImage(File, filePath);
 
   const dataType = getDataType(result);
+
+  yield updateIndex(index);
+
   if (!Number.isInteger(dataType)) {
-    yield updateIndex(index);
     console.log('-----finish ignore kui number');
     yield sendLog('upload.js finish ignore status kuiNumber: ' + kuiNumber + ' ' + imageFile);
     process.exit(4);
   }
+  yield sendLog('upload.js complete kuiNumber: ' + kuiNumber + ' ' + imageFile);
   // データ登録
-  const kuiHMD = yield buildKuiHitmachineData(kuiObj.objectId, dataType, file.name, 0);
-  yield registerKHMD(index, kuiHMD, kuiNumber);
+  // const kuiHMD = yield buildKuiHitmachineData(kuiObj.objectId, dataType, file.name, 0);
+  // yield registerKHMD(index, kuiHMD, kuiNumber);
   console.log('-----complete');
   process.exit(0);
 }
