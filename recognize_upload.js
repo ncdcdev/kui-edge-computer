@@ -324,7 +324,7 @@ function* exitWithRecognizeError(index) {
   if (index !== undefined && index !== null && index !== false) {
     yield updateIndex(index);
   }
-  yield sendLog('upload.js finish recognize error ' + imageFile, 'ERROR');
+  yield sendLog('upload.js finish recognize error' + imageFile, 'ERROR');
   console.log('-----finish recognize error');
   process.exit(1);
 }
