@@ -16,6 +16,8 @@ const isSkip = process.argv[6];
 const machineTypeFile = process.argv[7];
 const methodFile = process.argv[8];
 
+const RECOGNIZE_RETRY_COUNT = 4;
+
 const siteId = fs.readFileSync(siteIdFile, {
   encoding: 'utf8'
 });
@@ -324,7 +326,7 @@ function* exitWithRecognizeError(index) {
   if (index !== undefined && index !== null && index !== false) {
     yield updateIndex(index);
   }
-  yield sendLog('upload.js finish recognize error' + imageFile, 'ERROR');
+  yield sendLog('upload.js finish recognize error ' + imageFile, 'ERROR');
   console.log('-----finish recognize error');
   process.exit(1);
 }
@@ -361,9 +363,13 @@ function* earthguide(File, filePath) {
   }
 
   let result;
-  try {
-    result = yield recognizeAllArea(filePath);
-  } catch(e) {
+  for (let i = 0; i < RECOGNIZE_RETRY_COUNT; i++) {
+    try {
+      result = yield recognizeAllArea(filePath);
+      break;
+    } catch(e) { }
+  }
+  if (!result) {
     yield exitWithRecognizeError(index);
   }
   console.log('--------');
