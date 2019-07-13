@@ -367,7 +367,10 @@ function* earthguide(File, filePath) {
     try {
       result = yield recognizeAllArea(filePath);
       break;
-    } catch(e) { }
+    } catch(e) {
+      yield sendLog('recognize error ' + i);
+      yield sendLog(e);
+    }
   }
   if (!result) {
     yield exitWithRecognizeError(index);
