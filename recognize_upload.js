@@ -114,6 +114,7 @@ function recognize(buffer){
       })
       .then(result=>{
         text = result.text;
+        t.terminate();
         if (result.confidence < 20) {
           throw new Error('conficence too low: ' + result.confidence);
         }
@@ -128,6 +129,7 @@ function recognize(buffer){
         }
       })
       .catch(e=>{
+        t.terminate();
         console.log(e);
         reject(e);
       })
