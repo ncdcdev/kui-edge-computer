@@ -114,8 +114,8 @@ function recognize(buffer){
       })
       .then(result=>{
         text = result.text;
-        if (result.conficence < 20) {
-          throw new Error('conficence too low: ' + result.conficence);
+        if (result.confidence < 20) {
+          throw new Error('conficence too low: ' + result.confidence);
         }
         return sendLog('confidence: ' + result.confidence, 'MONITOR');
       }).then(() => {
