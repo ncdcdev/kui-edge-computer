@@ -116,9 +116,10 @@ function recognize(buffer){
         text = result.text;
         t.terminate();
         if (result.confidence < 20) {
-          throw new Error('conficence too low: ' + result.confidence);
+          reject('conficence too low: ' + result.confidence);
+        } else {
+          return sendLog('confidence: ' + result.confidence, 'MONITOR');
         }
-        return sendLog('confidence: ' + result.confidence, 'MONITOR');
       }).then(() => {
         const regexp = /(\d+) (\d+)/;
         const matches = text.match(regexp);
@@ -374,7 +375,7 @@ function* earthguide(File, filePath) {
       result = yield recognizeAllArea(filePath);
       break;
     } catch(e) {
-      yield sendLog('recognize error ' + i);
+      yield sendLog('recognize error retry count: ' + (i);
       yield sendLog(e);
     }
   }
