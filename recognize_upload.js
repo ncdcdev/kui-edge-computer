@@ -375,7 +375,7 @@ function* earthguide(File, filePath) {
       result = yield recognizeAllArea(filePath);
       break;
     } catch(e) {
-      yield sendLog('recognize error retry count: ' + (i);
+      yield sendLog('recognize error retry count: ' + (i+1));
       yield sendLog(e);
     }
   }
