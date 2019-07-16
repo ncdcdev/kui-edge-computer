@@ -121,7 +121,11 @@ function recognize(buffer){
       }).then(() => {
         const regexp = /(\d+) (\d+)/;
         const matches = text.match(regexp);
-        resolve(matches[1] + '-' + matches[2]);
+        if (matches && matches.length > 0) {
+          resolve(matches[1] + '-' + matches[2]);
+        } else {
+          reject(`recognized: ${text}`);
+        }
       })
       .catch(e=>{
         console.log(e);
