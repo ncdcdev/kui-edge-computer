@@ -1,6 +1,7 @@
 #!/bin/bash
 
 PROJ_DIR="/home/atmark/KuiEdgeMachine"
+REPOSITORY_URL="https://github.com/ncdcdev/kui-edge-computer.git"
 
 USERNAME="x"
 PASSWORD="x"
@@ -73,8 +74,8 @@ if [ -d ${PROJ_DIR} ];
 then
   rm -rf ${PROJ_DIR}
 fi
-git clone https://github.com/NCDCHub/kui-edge-computer.git ${PROJ_DIR}
-cd /home/atmark/KuiEdgeMachine
+git clone ${REPOSITORY_URL} ${PROJ_DIR}
+cd ${PROJ_DIR}
 npm install
 
 GSM_IFACE=$(nmcli connection | grep gsm | cut -d' ' -f 1)

@@ -15,13 +15,16 @@ const methodFile = process.argv[9];
 
 /** exit code
  * exit 0 => normal
- * exit 1 => require reboot
- * exit 2 => require waiting
- * exit 3 => require halt
- * exit 4 => require update wlan settings
- * exit 5 => require update all codes using git
- * exit 6 => require skip existing files in flashari
- * exit 7 => require reconnect 3G network
+ * exit 1 => reboot
+ * exit 2 => waiting
+ * exit 3 => halt
+ * exit 4 => update wlan settings
+ * exit 5 => update all codes using git
+ * exit 6 => skip existing files in flashari
+ * exit 7 => reconnect 3G network
+ * exit 8 => change sim settings to soracom
+ * exit 9 => change sim settings to marubeni
+ * exit 10 => remove & clone repository
  * exit 255 => unknown error
 **/
 
@@ -179,6 +182,10 @@ co(function*(){
     machine.status = 'halted';
     yield updateMachineStatus(ajax, machine);
     process.exit(9);
+  }else if(machine.status == 'reset-repository'){
+    machine.status = 'waiting';
+    yield updateMachineStatus(ajax, machine);
+    process.exit(10);
   }else if(machine.status != 'normal'){
     machine.status = 'normal';
     doUpdate = true;

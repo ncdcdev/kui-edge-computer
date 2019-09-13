@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PROJ_DIR="/home/atmark/KuiEdgeMachine"
+REPOSITORY_URL="https://github.com/ncdcdev/kui-edge-computer.git"
 LOG_FILE=/var/log/check_flashair.log
 NET_3G_NAME=wan3g
 NET_WIFI_NAME=flashair
@@ -172,6 +174,20 @@ update_file(){
   fi
 }
 
+update_repository(){
+cat << EOT > /tmp/update_repository.sh
+#!/bin/bash
+mv "${PROJ_DIR}/account.js" /tmp/account.js
+rm -rf ${PROJ_DIR}
+git clone ${REPOSITORY_URL} ${PROJ_DIR}
+mv /tmp/account.js "${PROJ_DIR}/account.js"
+cd ${PROJ_DIR}
+npm install
+EOT
+chmod u+x /tmp/update_repository.sh
+exec /tmp/update_repository.sh
+}
+
 syncdate(){
   sleep 10
   ntpdate ntp.nict.jp
@@ -291,6 +307,12 @@ do
     nmcli connection add type gsm ifname "*" con-name ${NET_3G_NAME} apn mmtcom.jp user 'mmt@mmt' password mmt
     nmcli connection add type wifi ifname "*" con-name ${NET_WIFI_NAME} ssid earthguide1
     poweroff
+  elif [ $result = 10 ];
+  then
+    set -ex
+    update_repository
+    disconnect_wan3g
+    exit_process 0
   elif [ $result > 100 ];
   then
     connect_wan3g
