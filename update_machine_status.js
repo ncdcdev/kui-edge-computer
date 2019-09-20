@@ -63,7 +63,8 @@ function updateMachineStatus(ajax, machine) {
           status: machine.status,
           overrideIndex: machine.overrideIndex,
           updateTime: Math.floor(Date.now() / 1000),
-          pingDate: Date.now()
+          pingDate: Date.now()j
+          currentVersion: machine.currentVersion
         }]
       })
       .end(AppPot.Ajax.end(resolve, reject));
@@ -125,14 +126,6 @@ co(function*(){
 
   yield authenticator.login(account.username, account.password);
 
-  let machine = yield getMachine(ajax);
-  let doUpdate = false;
-  let updatedWlan = false;
-  // ハートビート代わりに、pingDateを更新する
-  yield updateMachineStatus(ajax, machine);
-  yield log('ping');
-  machine = yield getMachine(ajax);
-
   const siteId = fs.readFileSync(siteIdFile, {
     encoding: 'utf8'
   });
@@ -156,6 +149,17 @@ co(function*(){
   const gittag = fs.readFileSync(gittagFile, {
     encoding: 'utf8'
   });
+
+  yield log(`current version: ${gittag}`);
+
+  let machine = yield getMachine(ajax);
+  machine.currentVersion = gittag;
+  let doUpdate = false;
+  let updatedWlan = false;
+  // ハートビート代わりに、pingDateを更新する
+  yield updateMachineStatus(ajax, machine);
+  yield log('ping');
+  machine = yield getMachine(ajax);
 
   if(machine.status == 'reboot'){
     yield log('rebooting...');
@@ -220,7 +224,7 @@ co(function*(){
   }
   
   if(machine.overrideIndex == '0') {
-    const currentIndex = fs.readFileSync(siteIdFile, {
+    const currentIndex = fs.readFileSync(indexFile, {
       encoding: 'utf8'
     });
     machine.index = currentIndex;
@@ -233,7 +237,6 @@ co(function*(){
   }else if(machine.overrideIndex == '2') {
     fs.writeFileSync(indexFile, -1);
     yield log('overrided index and skip existing files');
-    machine.overrideIndex = '0';
     yield updateMachineStatus(ajax, machine);
     process.exit(6);
   }

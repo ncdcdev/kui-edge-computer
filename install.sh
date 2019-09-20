@@ -38,7 +38,7 @@ then
   exit 0
 fi
 
-if [ "${FROMNOW}" = "1"];
+if [ "${FROMNOW}" = "1" ];
 then
   if [ ! -e "${PROJ_DIR}/account.js" ];
   then
