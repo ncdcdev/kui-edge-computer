@@ -1,2 +1,8 @@
 ## install
-`curl -L https://raw.githubusercontent.com/ncdcdev/kui-edge-computer/master/install.sh | bash -s -- -u [USERNAME] -p [PASSWORD]`
+### 初期セットアップ
+
+`curl -D - https://setup.tpilerecorder.jp/install.sh | bash -s -- -u [USERNAME] -p [PASSWORD]`
+
+### 前のaccount情報をそのまま引き継ぐ場合
+
+`curl -D - https://setup.tpilerecorder.jp/install.sh | bash -s -- -b`
