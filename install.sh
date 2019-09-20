@@ -74,7 +74,7 @@ nodebrew use v6.10.2
 
 if [ "${FROMNOW}" = "1" ];
 then
-  mv "${PROJ_DIR}/account.js" ~/account.js
+  cp "${PROJ_DIR}/account.js" ~/account.js
 fi
 if [ -d ${PROJ_DIR} ];
 then
@@ -117,7 +117,7 @@ module.exports = {
 }
 EOT
 else
-  mv ~/account.js "${PROJ_DIR}/account.js"
+  mv -f ~/account.js "${PROJ_DIR}/account.js"
 fi
 cp ./check_flashair /etc/cron.d/
 if [ "${NOOFF}" = "x" ];
