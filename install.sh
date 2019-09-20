@@ -50,6 +50,12 @@ then
 fi
 
 set -ex
+
+if [ -e "/etc/cron.d/check_flashair" ];
+then
+  rm -f /etc/cron.d/check_flashair
+fi
+
 apt update
 apt install -y git vim graphicsmagick
 cat ~/.bashrc | grep -v nodebrew > ~/.bashrc.new

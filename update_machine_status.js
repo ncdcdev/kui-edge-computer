@@ -63,7 +63,7 @@ function updateMachineStatus(ajax, machine) {
           status: machine.status,
           overrideIndex: machine.overrideIndex,
           updateTime: Math.floor(Date.now() / 1000),
-          pingDate: Date.now()j
+          pingDate: Date.now(),
           currentVersion: machine.currentVersion
         }]
       })
