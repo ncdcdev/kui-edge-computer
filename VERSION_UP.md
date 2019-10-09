@@ -9,7 +9,8 @@
   - ストップビット: 1bit
   - パリティ: none
   - フロー制御: none
-5. シリアル通信経由でArmadilloにrootでログイン
-6. 以下のコマンドを実行
+5. Armadilloの電源を入れる
+6. シリアル通信経由でArmadilloにrootでログイン
+7. 以下のコマンドを実行
 `curl https://setup.tpilerecorder.jp/v1/install.sh | bash -s -- -b`
-7. 電源が切れたら完了
+8. 電源が切れたら完了
