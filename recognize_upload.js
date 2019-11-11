@@ -51,22 +51,22 @@ const geometries = {
     y: 28
   },
   status1: {
-    width: 51,
-    height: 16,
-    x: 454,
-    y: 113
+    width: 47,
+    height: 11,
+    x: 457,
+    y: 115
   },
   status2: {
-    width: 60,
-    height: 16,
-    x: 505,
-    y: 113
+    width: 57,
+    height: 11,
+    x: 507,
+    y: 116
   },
   status3: {
-    width: 75,
-    height: 16,
-    x: 565,
-    y: 113
+    width: 71,
+    height: 11,
+    x: 567,
+    y: 116
   }
 };
 
