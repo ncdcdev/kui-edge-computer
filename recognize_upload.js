@@ -179,7 +179,8 @@ function getStatus(imgPath, area){
         reject(err);
       }else{
         const brightness = buffer.readUInt8(buffer.length - 1);
-        resolve( brightness < 230 );
+        // resolve( brightness < 230 );
+        resolve( brightness );
       }
     })
   });
@@ -369,10 +370,25 @@ function* earthguide(File, filePath) {
     process.exit(5);
   }
 
-  let result;
+  let result = [];
   for (let i = 0; i < RECOGNIZE_RETRY_COUNT; i++) {
     try {
-      result = yield recognizeAllArea(filePath);
+      result[0] = yield getNumberArea(filePath).then(recognize);
+      yield sendLog('upload.js debug0: ' + result[0]);
+
+      result[1] = yield getStatus(filePath, geometries.status1);
+      yield sendLog('upload.js debug1: ' + result[1]);
+      result[1] = result[1] < 230;
+
+      result[2] = yield getStatus(filePath, geometries.status2);
+      yield sendLog('upload.js debug2: ' + result[2]);
+      result[2] = result[2] < 230;
+
+      result[3] = yield getStatus(filePath, geometries.status3);
+      yield sendLog('upload.js debug3: ' + result[3]);
+      result[3] = result[3] < 230;
+
+      // result = yield recognizeAllArea(filePath);
       break;
     } catch(e) {
       yield sendLog('recognize error retry count: ' + (i+1));
@@ -384,6 +400,7 @@ function* earthguide(File, filePath) {
   }
   console.log('--------');
   console.log(result[0] + ' ' + result[1] + ' ' + result[2] + ' ' + result[3]);
+  yield sendLog('upload.js status recognize results: ' + result[0] + ' ' + result[1] + ' ' + result[2] + ' ' + result[3]);
   console.log('--------');
   const matches = result[0].match(/(\d{3})-(\d{3})/);
   if(!matches){
