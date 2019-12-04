@@ -5,6 +5,7 @@ REPOSITORY_URL="https://github.com/ncdcdev/kui-edge-computer.git"
 LOG_FILE=/var/log/check_flashair.log
 NET_3G_NAME=wan3g
 NET_WIFI_NAME=flashair
+DEFAULT_SSID=earthguide1
 NODE=/root/.nodebrew/node/v6.10.2/bin/node
 
 STATUS_DIR=status_files/
@@ -269,10 +270,10 @@ do
     poweroff
   elif [ $result = 4 ];
   then
-    NEW_SSID=`cat ${SSID_FILE}`
-    NEW_PSWD=`cat ${PSWD_FILE}`
-    nmcli connection modify ${NET_WIFI_NAME} 802-11-wireless.ssid ${NEW_SSID}
-    nmcli connection modify ${NET_WIFI_NAME} wifi-sec.key-mgmt wpa-psk wifi-sec.psk ${NEW_PSWD}
+    NEW_SSID="`cat ${SSID_FILE}`"
+    NEW_PSWD="`cat ${PSWD_FILE}`"
+    nmcli connection modify ${NET_WIFI_NAME} 802-11-wireless.ssid "${NEW_SSID}"
+    nmcli connection modify ${NET_WIFI_NAME} wifi-sec.key-mgmt wpa-psk wifi-sec.psk "${NEW_PSWD}"
     exit_process 0
   elif [ $result = 5 ];
   then
@@ -295,7 +296,7 @@ do
     nmcli connection delete wan3g
     nmcli connection delete flashair
     nmcli connection add type gsm ifname "*" con-name ${NET_3G_NAME} apn soracom.io user sora password sora
-    nmcli connection add type wifi ifname "*" con-name ${NET_WIFI_NAME} ssid earthguide1
+    nmcli connection add type wifi ifname "*" con-name ${NET_WIFI_NAME} ssid ${DEFAULT_SSID}
     poweroff
   elif [ $result = 9 ];
   then
@@ -305,7 +306,7 @@ do
     nmcli connection delete wan3g
     nmcli connection delete flashair
     nmcli connection add type gsm ifname "*" con-name ${NET_3G_NAME} apn mmtcom.jp user 'mmt@mmt' password mmt
-    nmcli connection add type wifi ifname "*" con-name ${NET_WIFI_NAME} ssid earthguide1
+    nmcli connection add type wifi ifname "*" con-name ${NET_WIFI_NAME} ssid ${DEFAULT_SSID}
     poweroff
   elif [ $result = 10 ];
   then
