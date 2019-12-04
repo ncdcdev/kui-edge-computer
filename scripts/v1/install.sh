@@ -84,30 +84,32 @@ git clone ${REPOSITORY_URL} ${PROJ_DIR}
 cd ${PROJ_DIR}
 npm install
 
-GSM_IFACE=$(nmcli connection | grep gsm | cut -d' ' -f 1)
-WIFI_IFACE=$(nmcli connection | grep 802-11-wireless | cut -d' ' -f 1)
-if [ ! "${GSM_IFACE}" = "" ];
-then
-  nmcli connection delete ${GSM_IFACE}
-fi
+if [ "${FROMNOW}" = "x" ];then
+  GSM_IFACE=$(nmcli connection | grep gsm | cut -d' ' -f 1)
+  WIFI_IFACE=$(nmcli connection | grep 802-11-wireless | cut -d' ' -f 1)
+  if [ ! "${GSM_IFACE}" = "" ];
+  then
+    nmcli connection delete ${GSM_IFACE}
+  fi
 
-if [ ! "${WIFI_IFACE}" = "" ];
-then
-  nmcli connection delete ${WIFI_IFACE}
-fi
-case $CARRIER in
-  soracom)
-    nmcli connection add type gsm ifname "*" con-name wan3g apn soracom.io user sora password sora
-    ;;
-  marubeni)
-    nmcli connection add type gsm ifname "*" con-name wan3g apn mmtcom.jp user 'mmt@mmt' password mmt
-    ;;
-  *)
-    nmcli connection add type gsm ifname "*" con-name wan3g apn soracom.io user sora password sora
-    ;;
-esac
+  if [ ! "${WIFI_IFACE}" = "" ];
+  then
+    nmcli connection delete ${WIFI_IFACE}
+  fi
+  case $CARRIER in
+    soracom)
+      nmcli connection add type gsm ifname "*" con-name wan3g apn soracom.io user sora password sora
+      ;;
+    marubeni)
+      nmcli connection add type gsm ifname "*" con-name wan3g apn mmtcom.jp user 'mmt@mmt' password mmt
+      ;;
+    *)
+      nmcli connection add type gsm ifname "*" con-name wan3g apn soracom.io user sora password sora
+      ;;
+  esac
 
-nmcli connection add type wifi ifname "*" con-name flashair ssid earthguide1
+  nmcli connection add type wifi ifname "*" con-name flashair ssid earthguide1
+fi
 
 if [ "${FROMNOW}" = "x" ];then
 cat << EOT > account.js
