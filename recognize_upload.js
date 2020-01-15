@@ -123,7 +123,7 @@ function recognize(buffer){
       }).then(() => {
         const regexp = /(\d+) (\d+)/;
         const matches = text.match(regexp);
-        if (matches && matches.length > 0) {
+        if (matches && matches.length === 3) {
           resolve(matches[1] + '-' + matches[2]);
         } else {
           reject(`recognized: ${text}`);
@@ -395,7 +395,7 @@ function* earthguide(File, filePath) {
       yield sendLog(e);
     }
   }
-  if (!result) {
+  if (!result || result.length !== 4) {
     yield exitWithRecognizeError(index);
   }
   console.log('--------');
