@@ -197,7 +197,7 @@ co(function*(){
 
   if(machine.version != gittag){
     fs.writeFileSync(gittagFile, machine.version);
-    console.log('dummy message 5');
+    console.log('dummy message 6');
     yield log('update version to: ' + machine.version);
     process.exit(5);
   }
