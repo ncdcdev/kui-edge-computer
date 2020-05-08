@@ -59,6 +59,7 @@ connect_flashair(){
         if [ -e ${FLAGFILEDIR}/flashairfail3 ];then
           echo "[Failed] failed to connect flashair 4 times rebooting" | log
           rm ${FLAGFILEDIR}/flashairfail*
+          rm -f ${LOCK_FILE}
           reboot
         else
           touch ${FLAGFILEDIR}/flashairfail3;
@@ -111,6 +112,7 @@ connect_wan3g(){
         if [ -e ${FLAGFILEDIR}/wan3gfail3 ];then
           echo "[Failed] failed to connect wan3g-network 4 times rebooting" | log
           rm ${FLAGFILEDIR}/wan3gfail*
+          rm -f ${LOCK_FILE}
           reboot
         else
           touch ${FLAGFILEDIR}/wan3gfail3;
@@ -250,6 +252,7 @@ for CNT in $(seq 1 10);
 do
   if [ $CNT = 10 ];
   then
+    rm -f ${LOCK_FILE}
     reboot
   fi
   timeout 30 ${NODE} ./update_machine_status.js ${INDEX_FILE} "${MACADDR}" ${SITE_ID_FILE} "${SSID_FILE}" "${PSWD_FILE}" "${GITTAG_FILE}" "${MACHINETYPE_FILE}" "${METHOD_FILE}" >> ${LOG_FILE}
@@ -260,6 +263,7 @@ do
     break
   elif [ $result = 1 ];
   then
+    rm -f ${LOCK_FILE}
     reboot
   elif [ $result = 2 ];
   then
