@@ -47,7 +47,10 @@ exit_process(){
 }
 
 connect_flashair(){
-  timeout 90 nmcli connection up ${NET_WIFI_NAME}
+  SSID="`cat ${SSID_FILE}`"
+  PSWD="`cat ${PSWD_FILE}`"
+  # timeout 90 nmcli connection up ${NET_WIFI_NAME}
+  timeout 90 nmcli device wifi connect "${SSID}" password "${PSWD}"
   # nmcli device connect wlan0
   RESULT=$?
 
@@ -71,7 +74,7 @@ connect_flashair(){
       touch ${FLAGFILEDIR}/flashairfail1;
     fi
     disconnect_flashair
-    sendlog "failed to connect flashair"
+    sendlog "failed to connect flashair ${SSID} ${PSWD}"
     exit_process 1
   fi
   rm ${FLAGFILEDIR}/flashairfail* 2> /dev/null
@@ -208,6 +211,7 @@ fi
 echo "start script..." | log
 
 touch ${LOCK_FILE}
+echo 0 > /proc/sys/kernel/sysrq
 
 disconnect_flashair
 disconnect_wan3g
