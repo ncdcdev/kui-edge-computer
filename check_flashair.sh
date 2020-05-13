@@ -49,8 +49,8 @@ exit_process(){
 connect_flashair(){
   SSID="`cat ${SSID_FILE}`"
   PSWD="`cat ${PSWD_FILE}`"
-  # timeout 90 nmcli connection up ${NET_WIFI_NAME}
-  timeout 90 nmcli device wifi connect "${SSID}" password "${PSWD}"
+  timeout 90 nmcli connection up ${NET_WIFI_NAME}
+  # timeout 90 nmcli device wifi connect "${SSID}" password "${PSWD}"
   # nmcli device connect wlan0
   RESULT=$?
 
