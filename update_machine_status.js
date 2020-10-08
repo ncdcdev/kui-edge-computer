@@ -223,6 +223,22 @@ co(function*(){
     fs.writeFileSync(methodFile, newMethod);
     yield log('overrided method to: ' + newMethod);
   }
+
+  if(machine.wlanSsid != ssid){
+    fs.writeFileSync(ssidFile, machine.wlanSsid);
+    yield log('overrided wlanSsid to: ' + machine.wlanSsid);
+    updatedWlan = true;
+  }
+
+  if(machine.wlanPassword != pswd){
+    fs.writeFileSync(pswdFile, machine.wlanPassword);
+    yield log('overrided wlanPW to: ' + machine.wlanPassword);
+    updatedWlan = true;
+  }
+
+  if(updatedWlan){
+    process.exit(4);
+  }
   
   if(machine.overrideIndex == '0') {
     const currentIndex = fs.readFileSync(indexFile, {
@@ -244,22 +260,6 @@ co(function*(){
 
   if(doUpdate){
     yield updateMachineStatus(ajax, machine);
-  }
-
-  if(machine.wlanSsid != ssid){
-    fs.writeFileSync(ssidFile, machine.wlanSsid);
-    yield log('overrided wlanSsid to: ' + machine.wlanSsid);
-    updatedWlan = true;
-  }
-
-  if(machine.wlanPassword != pswd){
-    fs.writeFileSync(pswdFile, machine.wlanPassword);
-    yield log('overrided wlanPW to: ' + machine.wlanPassword);
-    updatedWlan = true;
-  }
-
-  if(updatedWlan){
-    process.exit(4);
   }
 
 })
