@@ -278,10 +278,18 @@ do
     poweroff
   elif [ $result = 4 ];
   then
-    NEW_SSID="`cat ${SSID_FILE}`"
-    NEW_PSWD="`cat ${PSWD_FILE}`"
     nmcli connection modify ${NET_WIFI_NAME} 802-11-wireless.ssid "${NEW_SSID}"
+    result=$?    
+    if [ $result != 0 ];then
+      exit_process 0
+    fi
+    NEW_SSID="`cat ${SSID_FILE}`"
     nmcli connection modify ${NET_WIFI_NAME} wifi-sec.key-mgmt wpa-psk wifi-sec.psk "${NEW_PSWD}"
+    result=$?
+    if [ $result != 0 ];then
+      exit_process 0
+    fi
+    NEW_PSWD="`cat ${PSWD_FILE}`"
     exit_process 0
   elif [ $result = 5 ];
   then
@@ -355,6 +363,7 @@ elif [ $result = 3 ];
 then
   # skip file when file count is 0
   disconnect_flashair
+  sendlog "try skip file but file count is 0."
   exit_process 0
 elif [ $result != 0 ];
 then
